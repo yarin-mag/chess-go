@@ -1,0 +1,17 @@
+appId: com.bchess.app
+productName: B-Chess
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  category: public.app-category.board-games
+  target: dmg
+  # Unsigned build (no paid Apple Developer account needed).
+  identity: null

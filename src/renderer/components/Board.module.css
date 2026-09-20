@@ -31,8 +31,7 @@
   height: 12.5%;
   box-sizing: border-box;
   border: 4px solid #2f7cf6;
-  background: rgba(47, 124, 246, 0.14);
-  box-shadow: inset 0 0 16px rgba(47, 124, 246, 0.55);
+  background: rgba(47, 124, 246, 0.1);
   animation: hintIn 0.16s ease-out;
 }
 

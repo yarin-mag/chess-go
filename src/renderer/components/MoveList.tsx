@@ -15,7 +15,9 @@ export function MoveList() {
     return out;
   }, [history]);
 
-  useEffect(() => endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), [history]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [history]);
 
   return (
     <div className={styles.list}>
