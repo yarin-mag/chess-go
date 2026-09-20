@@ -1,0 +1,36 @@
+{
+  "name": "b-chess",
+  "version": "1.0.0",
+  "description": "B-Chess - a smooth, cross-platform desktop chess game",
+  "main": "./out/main/index.js",
+  "author": "B-Chess",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac"
+  },
+  "dependencies": {
+    "chess.js": "^1.4.0",
+    "framer-motion": "^13.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^41.7.1",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^3.1.0",
+    "typescript": "^7.0.2",
+    "vite": "^6.4.3",
+    "vitest": "^4.1.11"
+  }
+}

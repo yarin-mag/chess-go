@@ -1,0 +1,109 @@
+:root {
+  --bg: #16150f;
+  --bg-glow: #2a2519;
+  --panel: #23211b;
+  --panel-raised: #2f2c24;
+  --border: #3b372d;
+  --text: #f1ece0;
+  --muted: #9b9484;
+  --accent: #d9a441;
+  --accent-text: #1c1608;
+  --danger: #e5484d;
+  --hint: #2f7cf6;
+  --radius: 12px;
+
+  /* Board fits the window: full height minus padding, and leaves room for the sidebar. */
+  --sidebar-width: 340px;
+  --board-size: min(calc(100vh - 56px), calc(100vw - var(--sidebar-width) - 84px));
+
+  font-family: 'Segoe UI', Inter, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  color: var(--text);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(1200px 700px at 30% 20%, var(--bg-glow), var(--bg));
+  overflow: hidden;
+  user-select: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Shared button styles (used across components). */
+.btn {
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-raised);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #38342a;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #ebb955;
+  border-color: transparent;
+}
+
+.btn-danger:hover:not(:disabled),
+.btn-danger.armed {
+  border-color: var(--danger);
+  background: rgba(229, 72, 77, 0.18);
+  color: #ffb4b6;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}

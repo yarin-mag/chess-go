@@ -1,0 +1,50 @@
+.square {
+  position: relative;
+  cursor: pointer;
+}
+
+.light {
+  background: var(--sq-light);
+  --label: var(--sq-dark);
+}
+
+.dark {
+  background: var(--sq-dark);
+  --label: var(--sq-light);
+}
+
+.lastMove::before,
+.selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 214, 79, 0.42);
+}
+
+.selected::before {
+  background: rgba(255, 214, 79, 0.62);
+}
+
+.check {
+  background-image: radial-gradient(circle, rgba(255, 40, 40, 0.95) 0%, rgba(230, 30, 30, 0.6) 40%, transparent 72%);
+}
+
+.label {
+  position: absolute;
+  font-size: calc(var(--board-size) * 0.0175);
+  font-weight: 700;
+  color: var(--label);
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+}
+
+.rank {
+  top: 3px;
+  left: 4px;
+}
+
+.file {
+  right: 4px;
+  bottom: 2px;
+}

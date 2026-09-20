@@ -1,0 +1,30 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel-raised);
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.option:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.active,
+.active:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}

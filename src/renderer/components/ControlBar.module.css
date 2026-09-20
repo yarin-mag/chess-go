@@ -1,0 +1,11 @@
+.bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bar :global(.btn) {
+  padding: 9px 6px;
+  font-size: 14px;
+  white-space: nowrap;
+}
