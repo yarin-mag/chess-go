@@ -1,0 +1,9 @@
+.piece {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  pointer-events: none; /* clicks go to the square underneath */
+  user-select: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+  will-change: left, top, transform;
+}
