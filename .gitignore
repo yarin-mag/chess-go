@@ -1,5 +1,7 @@
 node_modules
 out
 dist
+dist-web
+dev-dist
 *.log
 .DS_Store
