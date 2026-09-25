@@ -31,7 +31,16 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
     abortController?.abort();
     const controller = new AbortController();
     abortController = controller;
-    set({ status: 'analyzing', config, history, analysis: [], progress: { done: 0, total: history.length }, index: -1 });
+    // Show the final position immediately (what the player just experienced) rather than freezing on the
+    // start position for the whole analysis; the tutor panel's per-move text fills in once grading is done.
+    set({
+      status: 'analyzing',
+      config,
+      history,
+      analysis: [],
+      progress: { done: 0, total: history.length },
+      index: history.length - 1,
+    });
 
     analyzeGame(
       config.fen,

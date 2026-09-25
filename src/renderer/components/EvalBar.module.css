@@ -1,6 +1,8 @@
 .bar {
   width: 14px;
-  height: 100%;
+  /* Fixed rather than percentage-based: its flex ancestors size to content, so a percentage height here
+     would have no definite value to resolve against. */
+  height: 150px;
   border-radius: 7px;
   background: #1a1a1a;
   border: 1px solid var(--border);
