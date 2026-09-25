@@ -21,6 +21,18 @@
   color-scheme: dark;
 }
 
+/* Phone-width layout: board stacked above a full-width sidebar instead of side-by-side. */
+@media (max-width: 820px) {
+  :root {
+    --sidebar-width: 100%;
+    --board-size: min(calc(100vw - 32px), 62vh);
+  }
+
+  body {
+    overflow-y: auto;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

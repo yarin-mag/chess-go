@@ -2,6 +2,10 @@
   position: relative;
   width: var(--board-size);
   height: var(--board-size);
+  /* Stays square even when its flex container runs short on space (e.g. the stacked mobile layout,
+     where the board and a tall sidebar compete for the same vertical space) — shrinking only the
+     height here would distort it into a rectangle. */
+  flex-shrink: 0;
   border-radius: 6px;
   overflow: hidden;
   box-shadow:

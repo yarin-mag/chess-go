@@ -43,7 +43,12 @@ export function ReviewBoard({ flipped }: Props) {
   };
 
   return (
-    <div className={styles.board} style={style} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+    <div
+      className={styles.board}
+      style={{ ...style, touchAction: 'pan-y' }}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
       <BoardView
         pieces={pieces}
         flipped={flipped}
