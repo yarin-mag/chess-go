@@ -105,7 +105,7 @@ class Searcher {
 
   /** Iterative deepening: keeps the result of the deepest fully-completed iteration. */
   search(): ScoredMove[] {
-    const exact = this.cfg.randomTopN > 1 || this.cfg.noise > 0;
+    const exact = this.cfg.exact;
     const startedAt = Date.now();
     let moves = orderedMoves(this.chess);
     let result: ScoredMove[] = [];
@@ -145,4 +145,19 @@ export function findBestMove(fen: string, level: Level): MoveInput {
     return toInput(pool[Math.floor(Math.random() * pool.length)].move);
   }
   return toInput(scored[0].move);
+}
+
+export interface RootMoveScore {
+  move: MoveInput;
+  san: string;
+  score: number;
+}
+
+/** Scores every legal move from `fen` (best first). Used for post-game analysis, where every move's score is needed, not just the best one. */
+export function scoreRootMoves(fen: string, cfg: LevelConfig): RootMoveScore[] {
+  const chess = new Chess(fen);
+  const legal = chess.moves({ verbose: true });
+  if (legal.length === 0) return [];
+  if (legal.length === 1) return [{ move: toInput(legal[0]), san: legal[0].san, score: 0 }];
+  return new Searcher(chess, cfg).search().map((s) => ({ move: toInput(s.move), san: s.move.san, score: s.score }));
 }

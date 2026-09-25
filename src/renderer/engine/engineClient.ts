@@ -1,8 +1,9 @@
 import type { Level, MoveInput } from '@/core/types';
+import type { MoveGrade } from './analyze';
 import type { EngineRequest, EngineResponse } from './worker';
 
 interface Pending {
-  resolve: (m: MoveInput) => void;
+  resolve: (value: MoveInput | MoveGrade) => void;
   reject: (e: Error) => void;
 }
 
@@ -24,19 +25,33 @@ function getWorker(): Worker {
     const p = pending.get(data.id);
     if (!p) return;
     pending.delete(data.id);
-    if (data.move) p.resolve(data.move);
-    else p.reject(new Error(data.error ?? 'Engine returned no move'));
+    if (data.error) p.reject(new Error(data.error));
+    else if (data.bestMove) p.resolve(data.bestMove);
+    else if (data.grade) p.resolve(data.grade);
+    else p.reject(new Error('Engine returned an empty response'));
   };
   worker.onerror = () => failAll('Engine worker crashed');
   return worker;
 }
 
-/** Asks the background engine for a move. Rejects if the worker fails; callers should fall back. */
-export function requestEngineMove(fen: string, level: Level): Promise<MoveInput> {
+// A plain `Omit<EngineRequest, 'id'>` collapses the union to its common properties; distributing
+// over each member keeps `level` and `move` intact for their respective request kinds.
+type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
+
+function send<T extends MoveInput | MoveGrade>(request: WithoutId<EngineRequest>): Promise<T> {
   return new Promise((resolve, reject) => {
     const id = nextId++;
-    pending.set(id, { resolve, reject });
-    const req: EngineRequest = { id, fen, level };
-    getWorker().postMessage(req);
+    pending.set(id, { resolve: resolve as (v: MoveInput | MoveGrade) => void, reject });
+    getWorker().postMessage({ id, ...request } as EngineRequest);
   });
+}
+
+/** Asks the background engine for a move. Rejects if the worker fails; callers should fall back. */
+export function requestEngineMove(fen: string, level: Level): Promise<MoveInput> {
+  return send<MoveInput>({ kind: 'bestMove', fen, level });
+}
+
+/** Grades a played move against the engine's best move at that position (used for post-game review). */
+export function requestMoveGrade(fen: string, move: MoveInput): Promise<MoveGrade> {
+  return send<MoveGrade>({ kind: 'grade', fen, move });
 }

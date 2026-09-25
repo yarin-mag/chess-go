@@ -1,0 +1,16 @@
+.bar {
+  width: 14px;
+  height: 100%;
+  border-radius: 7px;
+  background: #1a1a1a;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.white {
+  background: #f0ece0;
+  transition: height 0.35s ease;
+}

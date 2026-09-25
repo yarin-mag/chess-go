@@ -10,7 +10,7 @@ interface Props {
   check: boolean;
   fileLabel?: string;
   rankLabel?: string;
-  onClick: (square: SquareName) => void;
+  onClick?: (square: SquareName) => void;
 }
 
 const cx = (...classes: (string | false)[]) => classes.filter(Boolean).join(' ');
@@ -25,7 +25,7 @@ export const Square = memo(function Square(p: Props) {
         p.selected && styles.selected,
         p.check && styles.check,
       )}
-      onClick={() => p.onClick(p.square)}
+      onClick={() => p.onClick?.(p.square)}
       data-square={p.square}
     >
       {p.rankLabel && <span className={cx(styles.label, styles.rank)}>{p.rankLabel}</span>}
