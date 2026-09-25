@@ -12,6 +12,7 @@ vi.mock('./analyzeGame', () => ({
     return history.map((move, ply) => ({
       ply,
       move,
+      fenBefore: 'x',
       bestMove: move,
       bestSan: move.san,
       bestScore: 0,

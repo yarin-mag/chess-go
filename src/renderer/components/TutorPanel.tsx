@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { describeMove, describePotentialMove } from '@/core/describeMove';
 import { useReviewStore } from '@/features/review/reviewStore';
 import { phraseFor } from '@/engine/explain';
 import { EvalBar } from './EvalBar';
@@ -11,6 +13,22 @@ const TIER_LABEL: Record<string, string> = {
   mistake: 'Mistake',
   blunder: 'Blunder',
 };
+
+/** A move name with a toggle that reveals its plain-English meaning ("The knight on b8 moves to c6."). */
+function ExpandableMove({ label, san, detail }: { label: string; san: string; detail: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={styles.moveRow}>
+      <p className={styles.moveLine}>
+        {label} <strong>{san}</strong>
+        <button className={styles.expandBtn} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+          {open ? 'Collapse ▲' : 'Expand ▾'}
+        </button>
+      </p>
+      {open && <p className={styles.moveDetail}>{detail}</p>}
+    </div>
+  );
+}
 
 export function TutorPanel() {
   const { analysis, index, status, progress, goTo, history } = useReviewStore();
@@ -52,12 +70,20 @@ export function TutorPanel() {
             </p>
           )}
           {current ? (
-            <p>{current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}</p>
+            <>
+              <ExpandableMove key={`played-${current.ply}`} label="Played:" san={current.move.san} detail={describeMove(current.move)} />
+              <p>{current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}</p>
+              {current.tier !== 'best' && current.tier !== 'brilliant' && (
+                <ExpandableMove
+                  key={`best-${current.ply}`}
+                  label="Best was"
+                  san={current.bestSan}
+                  detail={describePotentialMove(current.fenBefore, current.bestMove)}
+                />
+              )}
+            </>
           ) : (
             <p>Starting position. Swipe or use the arrow keys to step through the game.</p>
-          )}
-          {current && current.tier !== 'best' && current.tier !== 'brilliant' && (
-            <p className={styles.suggestion}>Best was {current.bestSan}.</p>
           )}
         </div>
       </div>

@@ -8,6 +8,8 @@ import type { MoveInput, MoveRecord } from '@/core/types';
 export interface MoveAnalysis {
   ply: number;
   move: MoveRecord;
+  /** Position before this move; lets the UI describe the suggested best move on demand. */
+  fenBefore: string;
   bestMove: MoveInput;
   bestSan: string;
   bestScore: number;
@@ -55,6 +57,7 @@ export async function analyzeGame(
     results.push({
       ply,
       move,
+      fenBefore,
       bestMove: grade.bestMove,
       bestSan: grade.bestSan,
       bestScore: grade.bestScore,
