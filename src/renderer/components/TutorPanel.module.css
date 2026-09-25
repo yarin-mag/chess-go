@@ -6,7 +6,10 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--panel);
-  height: 100%;
+  /* Sized to its own content, not stretched to fill the sidebar — MoveList needs the rest of that space. */
+  flex: none;
+  max-height: 340px;
+  overflow-y: auto;
 }
 
 .header {
@@ -58,7 +61,6 @@
 }
 
 .body {
-  flex: 1;
   display: flex;
   gap: 14px;
 }
@@ -83,4 +85,33 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.analyzing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.analyzingLabel {
+  font-weight: 700;
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.analyzingHint {
+  font-size: 13px;
+  color: var(--muted);
 }

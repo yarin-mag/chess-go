@@ -39,13 +39,13 @@ export function MoveList({ onSelectPly, activePly, history: historyOverride }: P
           <div key={r.number} className={styles.row}>
             <span className={styles.number}>{r.number}.</span>
             <span
-              className={`${styles.move} ${activePly === whitePly ? styles.active : ''}`}
+              className={`${styles.move} ${onSelectPly ? styles.clickable : ''} ${activePly === whitePly ? styles.active : ''}`}
               onClick={onSelectPly ? () => onSelectPly(whitePly) : undefined}
             >
               {r.white}
             </span>
             <span
-              className={`${styles.move} ${activePly === blackPly ? styles.active : ''}`}
+              className={`${styles.move} ${onSelectPly && r.black ? styles.clickable : ''} ${activePly === blackPly ? styles.active : ''}`}
               onClick={onSelectPly && r.black ? () => onSelectPly(blackPly) : undefined}
             >
               {r.black}

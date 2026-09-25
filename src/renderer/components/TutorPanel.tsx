@@ -17,11 +17,21 @@ export function TutorPanel() {
   const current = index >= 0 ? analysis[index] : null;
 
   if (status === 'analyzing') {
+    const percent = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
     return (
       <div className={styles.panel}>
-        <p>
-          Analyzing move {progress.done} of {progress.total}…
-        </p>
+        <div className={styles.analyzing}>
+          <p className={styles.analyzingLabel}>
+            Grading move {progress.done} of {progress.total}…
+          </p>
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${percent}%` }} />
+          </div>
+          <p className={styles.analyzingHint}>
+            Comparing every move you played against the engine's own best move. The board already shows
+            where the game ended — feel free to look around while this finishes.
+          </p>
+        </div>
       </div>
     );
   }
