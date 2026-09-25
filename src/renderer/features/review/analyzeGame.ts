@@ -72,7 +72,8 @@ export async function analyzeGame(
   // whoever moves there (i.e. the opponent, immediately after this move).
   for (let i = 0; i < results.length - 1; i++) {
     if (Math.abs(results[i + 1].bestScore) > MATE_THRESHOLD && !results[i].tags.includes('walksIntoMate')) {
-      results[i].tags = ['walksIntoMate', ...results[i].tags].slice(0, 2);
+      const prepended: ExplanationTag[] = ['walksIntoMate', ...results[i].tags];
+      results[i].tags = prepended.slice(0, 2);
     }
   }
 
