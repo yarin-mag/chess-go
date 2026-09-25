@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { attackersOf, cheapestAttackerValue } from './attacks';
+import { attackersOf } from './attacks';
 
-describe('attacks', () => {
-  it('finds the pieces of a color that attack a square', () => {
+describe('attackersOf', () => {
+  it('finds a rook attacking down a clear file', () => {
     expect(attackersOf('6k1/8/8/8/8/8/8/R3K3 w - - 0 1', 'a8', 'w')).toEqual(['a1']);
   });
 
@@ -10,12 +10,17 @@ describe('attacks', () => {
     expect(attackersOf('6k1/8/8/8/8/8/8/R3K3 w - - 0 1', 'h8', 'w')).toEqual([]);
   });
 
-  it('reports null when the color has no attacker on the square', () => {
-    // Black pawn on d5 attacks c4/e4, not a5.
-    expect(cheapestAttackerValue('6k1/8/8/3p4/8/8/8/R3K3 w - - 0 1', 'a5', 'b')).toBeNull();
+  it('finds a defender on a square occupied by its own color (chess.js move generation cannot)', () => {
+    // White knight on d4, defended by a white pawn on c3 (c3 attacks b4 and d4).
+    expect(attackersOf('6k1/8/8/8/3N4/2P5/8/6K1 w - - 0 1', 'd4', 'w')).toEqual(['c3']);
   });
 
-  it('is null when nothing attacks the square', () => {
-    expect(cheapestAttackerValue('6k1/8/8/8/8/8/8/R3K3 w - - 0 1', 'h1', 'w')).toBeNull();
+  it('finds a pawn attacker diagonally', () => {
+    expect(attackersOf('6k1/8/8/4p3/3N4/8/8/6K1 w - - 0 1', 'd4', 'b')).toEqual(['e5']);
+  });
+
+  it('stops a sliding attacker at the first blocker', () => {
+    expect(attackersOf('6k1/8/8/8/3n4/8/8/R3K3 w - - 0 1', 'a8', 'w')).toEqual(['a1']); // unaffected: d4 is off-file
+    expect(attackersOf('r5k1/8/8/8/8/8/8/R3K3 w - - 0 1', 'a1', 'b')).toEqual(['a8']);
   });
 });
