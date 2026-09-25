@@ -76,9 +76,46 @@
   color: var(--accent);
 }
 
-.suggestion {
+.moveRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.moveLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
+}
+
+.moveLine strong {
+  color: var(--text);
+}
+
+.expandBtn {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.expandBtn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.moveDetail {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--panel-raised);
   font-size: 14px;
+  color: var(--text);
 }
 
 .nav {
