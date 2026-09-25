@@ -35,3 +35,7 @@
 .move {
   font-weight: 600;
 }
+
+.active {
+  color: var(--accent);
+}
