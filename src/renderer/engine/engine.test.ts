@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { findBestMove } from './search';
+import { findBestMove, scoreRootMoves } from './search';
+import { ANALYSIS_LEVEL } from './analyzeLevel';
 import { ChessGame } from '@/core/chessGame';
 
 const uci = (m: { from: string; to: string }) => `${m.from}${m.to}`;
@@ -31,5 +32,19 @@ describe('engine', () => {
   it('returns the only legal move', () => {
     // Rook on h1 checks the h8 king; only Kg8 escapes.
     expect(uci(findBestMove('7k/8/6K1/8/8/8/8/7R b - - 0 1', 'easy'))).toBe('h8g8');
+  });
+});
+
+describe('scoreRootMoves', () => {
+  it('scores every legal move, best first', () => {
+    const scored = scoreRootMoves('6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1', ANALYSIS_LEVEL);
+    expect(scored[0].move).toMatchObject({ from: 'a1', to: 'a8' });
+    expect(scored.length).toBeGreaterThan(1);
+    expect(scored.every((s) => typeof s.score === 'number')).toBe(true);
+  });
+
+  it('includes the san for each move', () => {
+    const scored = scoreRootMoves('6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1', ANALYSIS_LEVEL);
+    expect(scored.find((s) => s.move.from === 'a1' && s.move.to === 'a8')?.san).toBe('Ra8#');
   });
 });
