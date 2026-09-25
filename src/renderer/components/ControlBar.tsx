@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { opposite } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
+import { useReviewStore } from '@/features/review/reviewStore';
 import styles from './ControlBar.module.css';
 
 type Armed = 'resign' | 'draw' | null;
@@ -12,7 +13,8 @@ interface Props {
 
 /** In-game actions. Destructive ones (resign / draw) need a second click to confirm. */
 export function ControlBar({ onOpenSettings }: Props) {
-  const { status, game, players, history, flipped, undo, setFlipped, resign, agreeDraw, backToMenu } = useGameStore();
+  const { status, game, players, history, config, flipped, undo, setFlipped, resign, agreeDraw, backToMenu } = useGameStore();
+  const startReview = useReviewStore((s) => s.start);
   const [armed, setArmed] = useState<Armed>(null);
 
   useEffect(() => {
@@ -59,6 +61,11 @@ export function ControlBar({ onOpenSettings }: Props) {
           onClick={confirm('draw', agreeDraw)}
         >
           {armed === 'draw' ? 'Agree?' : '½ Draw'}
+        </button>
+      )}
+      {status === 'over' && (
+        <button className="btn btn-primary" onClick={() => startReview(config, history)}>
+          🎓 Review
         </button>
       )}
       <button className="btn" onClick={backToMenu}>
