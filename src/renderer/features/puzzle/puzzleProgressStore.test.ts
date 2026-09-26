@@ -11,6 +11,7 @@ describe('puzzleProgressStore', () => {
       currentStreak: 0,
       longestStreak: 0,
       lastSolvedDate: null,
+      rushBest: { '3': 0, '5': 0 },
     });
   });
 
@@ -52,5 +53,27 @@ describe('puzzleProgressStore', () => {
     usePuzzleProgressStore.getState().markSolved(0, 1); // huge gap since 2020 -> resets to 1
     expect(usePuzzleProgressStore.getState().currentStreak).toBe(1);
     expect(usePuzzleProgressStore.getState().longestStreak).toBe(5);
+  });
+
+  describe('recordRushScore', () => {
+    it('records the first score as the best, and reports it as a new best', () => {
+      const isNewBest = usePuzzleProgressStore.getState().recordRushScore('3', 7);
+      expect(isNewBest).toBe(true);
+      expect(usePuzzleProgressStore.getState().rushBest['3']).toBe(7);
+    });
+
+    it('keeps the higher score and reports no new best for a lower one', () => {
+      usePuzzleProgressStore.getState().recordRushScore('3', 10);
+      const isNewBest = usePuzzleProgressStore.getState().recordRushScore('3', 4);
+      expect(isNewBest).toBe(false);
+      expect(usePuzzleProgressStore.getState().rushBest['3']).toBe(10);
+    });
+
+    it('tracks each duration independently', () => {
+      usePuzzleProgressStore.getState().recordRushScore('3', 5);
+      usePuzzleProgressStore.getState().recordRushScore('5', 12);
+      expect(usePuzzleProgressStore.getState().rushBest['3']).toBe(5);
+      expect(usePuzzleProgressStore.getState().rushBest['5']).toBe(12);
+    });
   });
 });

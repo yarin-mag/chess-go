@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { nextStreak, todayString } from './streak';
 
+export type RushDuration = '3' | '5';
+
 interface PuzzleProgressState {
   furthestStage: number;
   furthestPuzzleIndex: number;
@@ -10,10 +12,14 @@ interface PuzzleProgressState {
   longestStreak: number;
   /** 'YYYY-MM-DD' of the last day a puzzle was solved, or null before the first ever solve. */
   lastSolvedDate: string | null;
+  /** Best Puzzle Rush score so far, per run duration (in minutes). */
+  rushBest: Record<RushDuration, number>;
   /** Records a ladder solve and advances the "furthest reached" marker if (nextStage, nextPuzzleIndex) is further than before. */
   markSolved(nextStage: number, nextPuzzleIndex: number): void;
   /** Records a solve outside the ladder (the daily puzzle): counts toward the streak, doesn't move ladder progress. */
   recordDailySolve(): void;
+  /** Records a Puzzle Rush run's score; returns true if it beat the previous best for that duration. */
+  recordRushScore(duration: RushDuration, score: number): boolean;
 }
 
 const isFurther = (stage: number, index: number, curStage: number, curIndex: number) =>
@@ -42,6 +48,7 @@ export const usePuzzleProgressStore = create<PuzzleProgressState>()(
         currentStreak: 0,
         longestStreak: 0,
         lastSolvedDate: null,
+        rushBest: { '3': 0, '5': 0 },
 
         markSolved(nextStage, nextPuzzleIndex) {
           const { furthestStage, furthestPuzzleIndex } = get();
@@ -55,6 +62,13 @@ export const usePuzzleProgressStore = create<PuzzleProgressState>()(
 
         recordDailySolve() {
           bumpStreak();
+        },
+
+        recordRushScore(duration, score) {
+          const best = get().rushBest[duration];
+          const isNewBest = score > best;
+          if (isNewBest) set({ rushBest: { ...get().rushBest, [duration]: score } });
+          return isNewBest;
         },
       };
     },

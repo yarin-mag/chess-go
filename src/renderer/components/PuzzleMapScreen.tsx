@@ -19,8 +19,8 @@ const STAGE_THEME_LABEL = [
 ];
 
 export function PuzzleMapScreen({ onExit }: Props) {
-  const { furthestStage, furthestPuzzleIndex, currentStreak, longestStreak, solvedCount } = usePuzzleProgressStore();
-  const { start, startDaily } = usePuzzleStore();
+  const { furthestStage, furthestPuzzleIndex, currentStreak, longestStreak, solvedCount, rushBest } = usePuzzleProgressStore();
+  const { start, startDaily, startRush } = usePuzzleStore();
   const overall = overallProgress(furthestStage, furthestPuzzleIndex);
 
   return (
@@ -42,6 +42,15 @@ export function PuzzleMapScreen({ onExit }: Props) {
           <button className={`btn btn-primary ${styles.dailyButton}`} onClick={startDaily}>
             ⭐ Daily Puzzle
           </button>
+
+          <div className={styles.rushRow}>
+            <button className="btn" onClick={() => startRush('3')}>
+              ⚡ Rush 3 min{rushBest['3'] > 0 && ` · best ${rushBest['3']}`}
+            </button>
+            <button className="btn" onClick={() => startRush('5')}>
+              ⚡ Rush 5 min{rushBest['5'] > 0 && ` · best ${rushBest['5']}`}
+            </button>
+          </div>
         </header>
 
         <ol className={styles.stages}>

@@ -2,10 +2,13 @@ import { useEffect, useRef } from 'react';
 import { playSound } from '@/audio/sounds';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 
-/** Sound feedback for the puzzle trainer: a move click per ply, a buzz on a wrong attempt, a chime on solve. */
+const RUSH_TICK_MS = 200;
+
+/** Sound feedback for the puzzle trainer, and the Puzzle Rush countdown. Mount once, in PuzzleScreen. */
 export function usePuzzleEffects(): void {
   const history = usePuzzleStore((s) => s.history);
   const status = usePuzzleStore((s) => s.status);
+  const rushResult = usePuzzleStore((s) => s.rushResult);
 
   const previousLength = useRef(0);
   useEffect(() => {
@@ -19,5 +22,11 @@ export function usePuzzleEffects(): void {
   useEffect(() => {
     if (status === 'wrong') playSound('wrong');
     else if (status === 'solved') playSound('end');
-  }, [status]);
+    else if (status === 'rushOver') playSound(rushResult?.reason === 'wrong' ? 'wrong' : 'end');
+  }, [status, rushResult]);
+
+  useEffect(() => {
+    const id = setInterval(() => usePuzzleStore.getState().tickRush(Date.now()), RUSH_TICK_MS);
+    return () => clearInterval(id);
+  }, []);
 }
