@@ -2,6 +2,7 @@ import { colorName } from '@/features/game/labels';
 import { phraseFor } from '@/engine/explain';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 import { STAGE_COUNT, totalStagePuzzleCount } from '@/features/puzzle/puzzles';
+import { usePuzzleEffects } from '@/hooks/usePuzzleEffects';
 import { PuzzleBoard } from './PuzzleBoard';
 import styles from './PuzzleScreen.module.css';
 
@@ -19,7 +20,8 @@ interface Props {
 }
 
 export function PuzzleScreen({ onExit }: Props) {
-  const { status, stage, puzzleIndex, puzzle, feedback, hint, retry, next, showHint, showMap } = usePuzzleStore();
+  usePuzzleEffects();
+  const { status, stage, puzzleIndex, puzzle, feedback, hint, isDaily, retry, next, showHint, showMap } = usePuzzleStore();
   const stageSize = totalStagePuzzleCount(stage);
   const solverColor = puzzle ? (puzzle.fen.split(' ')[1] as 'w' | 'b') : 'w';
 
@@ -29,7 +31,7 @@ export function PuzzleScreen({ onExit }: Props) {
       <aside className={styles.sidebar}>
         <div className={styles.panel}>
           <p className={styles.stage}>
-            Stage {stage + 1} of {STAGE_COUNT} · Puzzle {puzzleIndex + 1} of {stageSize}
+            {isDaily ? '⭐ Daily Puzzle' : `Stage ${stage + 1} of ${STAGE_COUNT} · Puzzle ${puzzleIndex + 1} of ${stageSize}`}
           </p>
           <p className={styles.instruction}>Find the best move for {colorName(solverColor)}.</p>
 
@@ -59,7 +61,7 @@ export function PuzzleScreen({ onExit }: Props) {
             <div className={styles.feedback}>
               <p className={styles.solved}>Solved!</p>
               <button className="btn btn-primary" onClick={next}>
-                Next puzzle →
+                {isDaily ? 'Back to map →' : 'Next puzzle →'}
               </button>
             </div>
           )}

@@ -19,8 +19,8 @@ const STAGE_THEME_LABEL = [
 ];
 
 export function PuzzleMapScreen({ onExit }: Props) {
-  const { furthestStage, furthestPuzzleIndex } = usePuzzleProgressStore();
-  const start = usePuzzleStore((s) => s.start);
+  const { furthestStage, furthestPuzzleIndex, currentStreak, longestStreak, solvedCount } = usePuzzleProgressStore();
+  const { start, startDaily } = usePuzzleStore();
   const overall = overallProgress(furthestStage, furthestPuzzleIndex);
 
   return (
@@ -29,11 +29,19 @@ export function PuzzleMapScreen({ onExit }: Props) {
         <header className={styles.header}>
           <h1>Puzzle Roadmap</h1>
           <p>
-            {overall}% of the way through {STAGE_COUNT} stages
+            {overall}% of the way through {STAGE_COUNT} stages · {solvedCount} solved
           </p>
           <div className={styles.overallTrack}>
             <div className={styles.overallFill} style={{ width: `${overall}%` }} />
           </div>
+          {currentStreak > 0 && (
+            <p className={styles.streak}>
+              🔥 {currentStreak}-day streak{longestStreak > currentStreak && ` · best ${longestStreak}`}
+            </p>
+          )}
+          <button className={`btn btn-primary ${styles.dailyButton}`} onClick={startDaily}>
+            ⭐ Daily Puzzle
+          </button>
         </header>
 
         <ol className={styles.stages}>

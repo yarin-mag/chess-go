@@ -48,6 +48,17 @@
   transition: width 0.3s ease;
 }
 
+.streak {
+  margin-top: 10px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.dailyButton {
+  margin-top: 16px;
+  width: 100%;
+}
+
 .stages {
   display: flex;
   flex-direction: column;
