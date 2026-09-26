@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import type { Color, Level, PlayerKind } from '@/core/types';
 import { TIME_PRESETS, customTimeControl } from '@/features/clock/presets';
 import { useGameStore } from '@/features/game/gameStore';
+import { usePuzzleProgressStore } from '@/features/puzzle/puzzleProgressStore';
+import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 import { Segmented } from './ui/Segmented';
 import styles from './NewGameMenu.module.css';
 
@@ -25,6 +27,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export function NewGameMenu() {
   const startGame = useGameStore((s) => s.startGame);
+  const startPuzzle = usePuzzleStore((s) => s.start);
+  const { furthestStage, furthestPuzzleIndex } = usePuzzleProgressStore();
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -135,6 +139,10 @@ export function NewGameMenu() {
 
         <button className={`btn btn-primary ${styles.start}`} onClick={start} autoFocus>
           Start game
+        </button>
+
+        <button className="btn" onClick={() => startPuzzle(furthestStage, furthestPuzzleIndex)}>
+          🧩 Puzzles
         </button>
       </motion.div>
     </div>
