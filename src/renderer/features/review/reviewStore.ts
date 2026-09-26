@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import type { GameConfig } from '@/features/game/gameStore';
 import type { MoveRecord } from '@/core/types';
+import { useGameHistoryStore } from '@/features/history/gameHistoryStore';
 import { analyzeGame, type MoveAnalysis } from './analyzeGame';
+
+interface StartOptions {
+  /** False for a session that isn't a real played game (e.g. Opening Explorer's "Watch") — skips the weakness-dashboard log. */
+  recordStats?: boolean;
+}
 
 interface ReviewState {
   status: 'idle' | 'analyzing' | 'ready';
@@ -10,7 +16,7 @@ interface ReviewState {
   progress: { done: number; total: number };
   analysis: MoveAnalysis[];
   index: number;
-  start(config: GameConfig, history: MoveRecord[]): void;
+  start(config: GameConfig, history: MoveRecord[], options?: StartOptions): void;
   goTo(index: number): void;
   next(): void;
   prev(): void;
@@ -27,7 +33,8 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   analysis: [],
   index: -1,
 
-  start(config, history) {
+  start(config, history, options = {}) {
+    const recordStats = options.recordStats ?? true;
     abortController?.abort();
     const controller = new AbortController();
     abortController = controller;
@@ -54,6 +61,11 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
       .then((analysis) => {
         if (controller.signal.aborted) return;
         set({ status: 'ready', analysis, index: history.length - 1 });
+        if (recordStats && analysis.length > 0) {
+          useGameHistoryStore
+            .getState()
+            .recordGame(analysis.map((a) => ({ ply: a.ply, tier: a.tier, tags: a.tags })));
+        }
       })
       .catch(() => {
         // Aborted by a new start() or exit() — nothing to report.

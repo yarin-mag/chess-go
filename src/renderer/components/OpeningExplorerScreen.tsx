@@ -24,7 +24,7 @@ export function OpeningExplorerScreen({ onExit }: Props) {
 
   const watch = (opening: CuratedOpening) => {
     const history = replayUci(undefined, opening.sequence);
-    startReview({ white: HUMAN, black: HUMAN, timeControl: UNTIMED }, history);
+    startReview({ white: HUMAN, black: HUMAN, timeControl: UNTIMED }, history, { recordStats: false });
     hideExplorer();
   };
 
