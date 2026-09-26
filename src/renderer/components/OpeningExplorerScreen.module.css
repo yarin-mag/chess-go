@@ -1,0 +1,98 @@
+.screen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.card {
+  width: min(640px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.header p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.practiceSettings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-raised);
+}
+
+.settingLabel {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-raised);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.eco {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.rowActions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.rowActions :global(.btn) {
+  padding: 7px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
