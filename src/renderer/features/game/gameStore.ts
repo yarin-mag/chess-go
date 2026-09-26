@@ -13,7 +13,15 @@ import {
 } from '@/core/types';
 import { Clock } from '@/features/clock/clock';
 import { UNTIMED, toClock } from '@/features/clock/presets';
+import { requestMoveHint } from '@/engine/engineClient';
+import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { createPlayer, type PlayerController } from './players';
+
+export interface GameHint {
+  move: MoveInput;
+  san: string;
+  tags: ExplanationTag[];
+}
 
 export interface GameConfig {
   white: PlayerKind;
@@ -42,6 +50,8 @@ export interface GameState {
   selected: Square | null;
   targets: Square[];
   pendingPromotion: { from: Square; to: Square } | null;
+  hint: GameHint | null;
+  hintLoading: boolean;
 
   startGame(config: GameConfig): void;
   select(sq: Square): void;
@@ -53,6 +63,7 @@ export interface GameState {
   agreeDraw(): void;
   tickClock(now: number): void;
   setFlipped(flipped: boolean): void;
+  requestHint(): Promise<void>;
   backToMenu(): void;
 }
 
@@ -118,6 +129,8 @@ export const useGameStore = create<GameState>((set, get) => {
     result: null,
     engineThinking: false,
     flipped: false,
+    hint: null,
+    hintLoading: false,
 
     ...noSelection,
 
@@ -140,6 +153,8 @@ export const useGameStore = create<GameState>((set, get) => {
         engineThinking: false,
         // Show the board from the human's side when they play Black against the computer.
         flipped: config.white.type === 'engine' && config.black.type === 'human',
+        hint: null,
+        hintLoading: false,
         ...noSelection,
       });
       requestNextMove();
@@ -183,6 +198,7 @@ export const useGameStore = create<GameState>((set, get) => {
         fen: game.fen(),
         history: [...get().history, record],
         lastMove: { from: record.from, to: record.to },
+        hint: null,
         ...noSelection,
       });
 
@@ -214,6 +230,7 @@ export const useGameStore = create<GameState>((set, get) => {
         history,
         lastMove: last ? { from: last.from, to: last.to } : null,
         engineThinking: false,
+        hint: null,
         ...noSelection,
       });
       requestNextMove();
@@ -236,6 +253,29 @@ export const useGameStore = create<GameState>((set, get) => {
 
     setFlipped(flipped) {
       set({ flipped });
+    },
+
+    async requestHint() {
+      const { status, game, players, fen } = get();
+      if (status !== 'playing' || players[game.turn()].kind !== 'human') return;
+
+      set({ hintLoading: true });
+      try {
+        const { bestMove, bestSan } = await requestMoveHint(fen);
+        if (get().fen !== fen) return; // the position moved on while this was computing
+
+        const before = new ChessGame(fen);
+        const after = new ChessGame(fen);
+        const move = after.move(bestMove)!;
+        // Describing the engine's own top choice: by definition it's "best", with no loss to grade.
+        const grade = { bestMove, bestSan, bestScore: 0, playedScore: 0, centipawnLoss: 0 };
+        const tags = explainTags({ before, after, move, grade, tier: 'best', ply: get().history.length });
+        set({ hint: { move: bestMove, san: bestSan, tags } });
+      } catch {
+        // Worker unavailable — silently give up; the player can just try again.
+      } finally {
+        set({ hintLoading: false });
+      }
     },
 
     backToMenu() {

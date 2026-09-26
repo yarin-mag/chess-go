@@ -8,7 +8,7 @@ import styles from './Board.module.css';
 
 /** Interactive puzzle board, driven by puzzleStore instead of the live-play gameStore. */
 export function PuzzleBoard() {
-  const { game, puzzle, history, selected, targets, lastMove, flipped, select } = usePuzzleStore();
+  const { game, puzzle, history, selected, targets, lastMove, flipped, hint, select } = usePuzzleStore();
   const showLegalMoves = useSettingsStore((s) => s.showLegalMoves);
   const theme = BOARD_THEMES[useSettingsStore((s) => s.boardTheme)];
 
@@ -29,6 +29,7 @@ export function PuzzleBoard() {
         showLegalMoves={showLegalMoves}
         isCaptureTarget={(sq) => game.pieceAt(sq) !== null}
         onSquareClick={(sq) => void select(sq)}
+        hintMove={hint?.move}
       />
     </div>
   );

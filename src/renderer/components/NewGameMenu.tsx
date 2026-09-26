@@ -5,6 +5,7 @@ import { TIME_PRESETS, customTimeControl } from '@/features/clock/presets';
 import { useGameStore } from '@/features/game/gameStore';
 import { usePuzzleProgressStore } from '@/features/puzzle/puzzleProgressStore';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
+import { overallProgress } from '@/features/puzzle/puzzles';
 import { Segmented } from './ui/Segmented';
 import styles from './NewGameMenu.module.css';
 
@@ -27,8 +28,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export function NewGameMenu() {
   const startGame = useGameStore((s) => s.startGame);
-  const startPuzzle = usePuzzleStore((s) => s.start);
+  const showPuzzleMap = usePuzzleStore((s) => s.showMap);
   const { furthestStage, furthestPuzzleIndex } = usePuzzleProgressStore();
+  const puzzleProgress = overallProgress(furthestStage, furthestPuzzleIndex);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -141,8 +143,8 @@ export function NewGameMenu() {
           Start game
         </button>
 
-        <button className="btn" onClick={() => startPuzzle(furthestStage, furthestPuzzleIndex)}>
-          🧩 Puzzles
+        <button className="btn" onClick={showPuzzleMap}>
+          🧩 Puzzles {puzzleProgress > 0 && `· ${puzzleProgress}%`}
         </button>
       </motion.div>
     </div>

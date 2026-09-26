@@ -25,3 +25,15 @@ export function puzzlesForStage(stage: number): PuzzleData[] {
 export function totalStagePuzzleCount(stage: number): number {
   return puzzlesForStage(stage).length;
 }
+
+export function totalPuzzleCount(): number {
+  return ALL.length;
+}
+
+/** How far (0-100) through the whole ladder `furthestStage`/`furthestPuzzleIndex` reaches. */
+export function overallProgress(furthestStage: number, furthestPuzzleIndex: number): number {
+  let solvedCount = 0;
+  for (let s = 0; s < furthestStage; s++) solvedCount += totalStagePuzzleCount(s);
+  solvedCount += Math.min(furthestPuzzleIndex, totalStagePuzzleCount(furthestStage));
+  return Math.round((solvedCount / totalPuzzleCount()) * 100);
+}

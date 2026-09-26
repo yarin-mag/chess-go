@@ -20,6 +20,8 @@ export interface BoardViewProps {
   isCaptureTarget: (sq: SquareName) => boolean;
   /** Absent = read-only board (used by the post-game review). */
   onSquareClick?: (sq: SquareName) => void;
+  /** "Ask for help" suggestion: highlights this move's squares in purple, independent of selection/targets. */
+  hintMove?: MoveInput | null;
 }
 
 /**
@@ -74,6 +76,21 @@ export function BoardView(p: BoardViewProps) {
               <span
                 key={sq}
                 className={`${styles.hint} ${p.isCaptureTarget(sq) ? styles.capture : ''}`}
+                style={{ left: `${col * 12.5}%`, top: `${row * 12.5}%` } as CSSProperties}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {p.hintMove && (
+        <div className={styles.layer}>
+          {[p.hintMove.from, p.hintMove.to].map((sq) => {
+            const { col, row } = squareToCell(sq, p.flipped);
+            return (
+              <span
+                key={sq}
+                className={styles.hintMove}
                 style={{ left: `${col * 12.5}%`, top: `${row * 12.5}%` } as CSSProperties}
               />
             );

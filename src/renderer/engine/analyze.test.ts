@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeMove } from './analyze';
+import { analyzeMove, findBestMoveForPosition } from './analyze';
 
 describe('analyzeMove', () => {
   it('gives zero loss for the actual best move', () => {
@@ -13,5 +13,14 @@ describe('analyzeMove', () => {
     const fen = '4k3/8/8/4p3/8/8/8/3QK3 w - - 0 1'; // Qd1-d4?? loses the queen to the e5 pawn
     const grade = analyzeMove(fen, { from: 'd1', to: 'd4' });
     expect(grade.centipawnLoss).toBeGreaterThan(300);
+  });
+});
+
+describe('findBestMoveForPosition', () => {
+  it('finds a mate-in-1 without needing a played move to compare against', () => {
+    const fen = '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1';
+    const best = findBestMoveForPosition(fen);
+    expect(best.bestMove).toMatchObject({ from: 'a1', to: 'a8' });
+    expect(best.bestSan).toBe('Ra8#');
   });
 });

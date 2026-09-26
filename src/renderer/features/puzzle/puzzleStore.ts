@@ -1,18 +1,24 @@
 import { create } from 'zustand';
 import { ChessGame } from '@/core/chessGame';
 import type { MoveInput, MoveRecord, PromotionPiece, Square } from '@/core/types';
+import { describePotentialMove } from '@/core/describeMove';
 import { requestMoveGrade } from '@/engine/engineClient';
 import { classify, type Tier } from '@/engine/classify';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { usePuzzleProgressStore } from './puzzleProgressStore';
 import { puzzlesForStage, totalStagePuzzleCount, type PuzzleData } from './puzzles';
 
-type PuzzleStatus = 'idle' | 'playing' | 'wrong' | 'solved';
+type PuzzleStatus = 'idle' | 'map' | 'playing' | 'wrong' | 'solved';
 
 export interface WrongMoveFeedback {
   tier: Tier;
   tags: ExplanationTag[];
   move: MoveRecord;
+}
+
+export interface PuzzleHint {
+  move: MoveInput;
+  text: string;
 }
 
 interface PuzzleState {
@@ -28,9 +34,12 @@ interface PuzzleState {
   lastMove: MoveInput | null;
   flipped: boolean;
   feedback: WrongMoveFeedback | null;
+  hint: PuzzleHint | null;
 
   start(stage: number, puzzleIndex: number): void;
   select(sq: Square): Promise<void>;
+  showHint(): void;
+  showMap(): void;
   retry(): void;
   next(): void;
   exit(): void;
@@ -57,6 +66,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
   lastMove: null,
   flipped: false,
   feedback: null,
+  hint: null,
   ...noSelection,
 
   start(stage, puzzleIndex) {
@@ -74,6 +84,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
       lastMove: null,
       flipped: game.turn() === 'b',
       feedback: null,
+      hint: null,
       ...noSelection,
     });
   },
@@ -85,7 +96,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     if (selected && targets.includes(sq)) {
       const expectedUci = puzzle.solution[solutionStep];
       const expected = parseUci(expectedUci);
-      set(noSelection);
+      set({ hint: null, ...noSelection });
 
       if (expected.from === selected && expected.to === sq) {
         playCorrect(selected, sq, expected.promotion);
@@ -139,6 +150,18 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
       if (get().puzzle !== puzzle) return; // user moved on before grading finished
       set({ status: 'wrong', feedback: { tier, tags, move } });
     }
+  },
+
+  showHint() {
+    const { status, game, puzzle, solutionStep } = get();
+    if (status !== 'playing' || !puzzle) return;
+    const move = parseUci(puzzle.solution[solutionStep]);
+    const text = describePotentialMove(game.fen(), move);
+    set({ hint: { move, text } });
+  },
+
+  showMap() {
+    set({ status: 'map' });
   },
 
   retry() {

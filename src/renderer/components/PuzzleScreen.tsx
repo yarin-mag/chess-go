@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function PuzzleScreen({ onExit }: Props) {
-  const { status, stage, puzzleIndex, puzzle, feedback, retry, next } = usePuzzleStore();
+  const { status, stage, puzzleIndex, puzzle, feedback, hint, retry, next, showHint, showMap } = usePuzzleStore();
   const stageSize = totalStagePuzzleCount(stage);
   const solverColor = puzzle ? (puzzle.fen.split(' ')[1] as 'w' | 'b') : 'w';
 
@@ -32,6 +32,18 @@ export function PuzzleScreen({ onExit }: Props) {
             Stage {stage + 1} of {STAGE_COUNT} · Puzzle {puzzleIndex + 1} of {stageSize}
           </p>
           <p className={styles.instruction}>Find the best move for {colorName(solverColor)}.</p>
+
+          {status === 'playing' && (
+            <div className={styles.hintRow}>
+              {hint ? (
+                <p className={styles.hintText}>💡 {hint.text}</p>
+              ) : (
+                <button className="btn" onClick={showHint}>
+                  💡 Ask for help
+                </button>
+              )}
+            </div>
+          )}
 
           {status === 'wrong' && feedback && (
             <div className={styles.feedback}>
@@ -53,9 +65,14 @@ export function PuzzleScreen({ onExit }: Props) {
           )}
         </div>
 
-        <button className="btn" onClick={onExit}>
-          ☰ Menu
-        </button>
+        <div className={styles.actions}>
+          <button className="btn" onClick={showMap}>
+            🗺 Map
+          </button>
+          <button className="btn" onClick={onExit}>
+            ☰ Menu
+          </button>
+        </div>
       </aside>
     </div>
   );

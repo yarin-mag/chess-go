@@ -86,4 +86,28 @@ describe('puzzleStore', () => {
     expect(usePuzzleStore.getState().status).toBe('playing');
     expect(usePuzzleStore.getState().feedback).toBeNull();
   });
+
+  it('shows a hint for the correct move, without needing an engine call', () => {
+    usePuzzleStore.getState().start(0, 0);
+    usePuzzleStore.getState().showHint();
+    const hint = usePuzzleStore.getState().hint;
+    expect(hint).not.toBeNull();
+    expect(`${hint!.move.from}${hint!.move.to}`).toBe(first.solution[0].slice(0, 4));
+    expect(hint!.text.length).toBeGreaterThan(0);
+  });
+
+  it('clears the hint once a move is played', async () => {
+    usePuzzleStore.getState().start(0, 0);
+    usePuzzleStore.getState().showHint();
+    expect(usePuzzleStore.getState().hint).not.toBeNull();
+    const [m0] = first.solution;
+    await play(m0.slice(0, 2), m0.slice(2, 4));
+    expect(usePuzzleStore.getState().hint).toBeNull();
+  });
+
+  it('showMap switches to the map status without touching an in-progress puzzle', () => {
+    usePuzzleStore.getState().start(0, 0);
+    usePuzzleStore.getState().showMap();
+    expect(usePuzzleStore.getState().status).toBe('map');
+  });
 });

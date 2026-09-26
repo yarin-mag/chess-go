@@ -36,6 +36,25 @@
   font-weight: 600;
 }
 
+.hintRow {
+  display: flex;
+}
+
+.hintText {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .feedback {
   display: flex;
   flex-direction: column;

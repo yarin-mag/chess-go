@@ -8,7 +8,7 @@ import { PromotionDialog } from './PromotionDialog';
 import styles from './Board.module.css';
 
 export function Board() {
-  const { game, config, history, selected, targets, lastMove, flipped, select } = useGameStore();
+  const { game, config, history, selected, targets, lastMove, flipped, hint, select } = useGameStore();
   const showLegalMoves = useSettingsStore((s) => s.showLegalMoves);
   const theme = BOARD_THEMES[useSettingsStore((s) => s.boardTheme)];
 
@@ -29,6 +29,7 @@ export function Board() {
         showLegalMoves={showLegalMoves}
         isCaptureTarget={(sq) => game.pieceAt(sq) !== null}
         onSquareClick={select}
+        hintMove={hint?.move}
       />
       <PromotionDialog />
     </div>

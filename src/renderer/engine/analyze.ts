@@ -26,3 +26,15 @@ export function analyzeMove(fenBefore: string, played: MoveInput): MoveGrade {
     centipawnLoss: Math.max(0, best.score - playedEntry.score),
   };
 }
+
+export interface BestMoveResult {
+  bestMove: MoveInput;
+  bestSan: string;
+  bestScore: number;
+}
+
+/** Finds the engine's best move for a position, without grading anything against it ("ask for help"). */
+export function findBestMoveForPosition(fen: string): BestMoveResult {
+  const [best] = scoreRootMoves(fen, ANALYSIS_LEVEL);
+  return { bestMove: best.move, bestSan: best.san, bestScore: best.score };
+}
