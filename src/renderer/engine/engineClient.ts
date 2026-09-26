@@ -1,9 +1,11 @@
 import type { Level, MoveInput } from '@/core/types';
-import type { MoveGrade } from './analyze';
+import type { BestMoveResult, MoveGrade } from './analyze';
 import type { EngineRequest, EngineResponse } from './worker';
 
+type EngineResult = MoveInput | MoveGrade | BestMoveResult;
+
 interface Pending {
-  resolve: (value: MoveInput | MoveGrade) => void;
+  resolve: (value: EngineResult) => void;
   reject: (e: Error) => void;
 }
 
@@ -28,6 +30,7 @@ function getWorker(): Worker {
     if (data.error) p.reject(new Error(data.error));
     else if (data.bestMove) p.resolve(data.bestMove);
     else if (data.grade) p.resolve(data.grade);
+    else if (data.hint) p.resolve(data.hint);
     else p.reject(new Error('Engine returned an empty response'));
   };
   worker.onerror = () => failAll('Engine worker crashed');
@@ -38,10 +41,10 @@ function getWorker(): Worker {
 // over each member keeps `level` and `move` intact for their respective request kinds.
 type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
 
-function send<T extends MoveInput | MoveGrade>(request: WithoutId<EngineRequest>): Promise<T> {
+function send<T extends EngineResult>(request: WithoutId<EngineRequest>): Promise<T> {
   return new Promise((resolve, reject) => {
     const id = nextId++;
-    pending.set(id, { resolve: resolve as (v: MoveInput | MoveGrade) => void, reject });
+    pending.set(id, { resolve: resolve as (v: EngineResult) => void, reject });
     getWorker().postMessage({ id, ...request } as EngineRequest);
   });
 }
@@ -54,4 +57,9 @@ export function requestEngineMove(fen: string, level: Level): Promise<MoveInput>
 /** Grades a played move against the engine's best move at that position (used for post-game review). */
 export function requestMoveGrade(fen: string, move: MoveInput): Promise<MoveGrade> {
   return send<MoveGrade>({ kind: 'grade', fen, move });
+}
+
+/** Finds the best move for the current position ("ask for help" during live play). */
+export function requestMoveHint(fen: string): Promise<BestMoveResult> {
+  return send<BestMoveResult>({ kind: 'hint', fen });
 }

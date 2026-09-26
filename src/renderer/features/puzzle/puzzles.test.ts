@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ChessGame } from '@/core/chessGame';
-import { STAGE_COUNT, puzzlesForStage, totalStagePuzzleCount } from './puzzles';
+import { STAGE_COUNT, overallProgress, puzzlesForStage, totalPuzzleCount, totalStagePuzzleCount } from './puzzles';
 
 describe('puzzles', () => {
   it('has 8 stages', () => {
@@ -23,5 +23,26 @@ describe('puzzles', () => {
       expect(() => new ChessGame(p.fen)).not.toThrow();
       expect(p.solution.length).toBeGreaterThan(0);
     }
+  });
+
+  it('totals every stage', () => {
+    const sum = Array.from({ length: STAGE_COUNT }, (_, s) => totalStagePuzzleCount(s)).reduce((a, b) => a + b, 0);
+    expect(totalPuzzleCount()).toBe(sum);
+  });
+
+  describe('overallProgress', () => {
+    it('is 0 at the very start', () => {
+      expect(overallProgress(0, 0)).toBe(0);
+    });
+
+    it('is 100 once every stage is cleared', () => {
+      expect(overallProgress(STAGE_COUNT, 0)).toBe(100);
+    });
+
+    it('increases within a stage', () => {
+      const mid = overallProgress(0, Math.floor(totalStagePuzzleCount(0) / 2));
+      expect(mid).toBeGreaterThan(0);
+      expect(mid).toBeLessThan(100);
+    });
   });
 });

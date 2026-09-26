@@ -44,6 +44,19 @@
   background: rgba(47, 124, 246, 0.24);
 }
 
+/* "Ask for help" suggestion — a distinct color from the blue legal-move hints so it never reads as one. */
+.hintMove {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  box-sizing: border-box;
+  border: 4px solid #a855f7;
+  background: rgba(168, 85, 247, 0.16);
+  box-shadow: inset 0 0 16px rgba(168, 85, 247, 0.6);
+  animation: hintIn 0.16s ease-out;
+  pointer-events: none;
+}
+
 @keyframes hintIn {
   from {
     opacity: 0;
