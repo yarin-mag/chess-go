@@ -13,7 +13,8 @@ interface Props {
 
 /** In-game actions. Destructive ones (resign / draw) need a second click to confirm. */
 export function ControlBar({ onOpenSettings }: Props) {
-  const { status, game, players, history, config, flipped, undo, setFlipped, resign, agreeDraw, backToMenu } = useGameStore();
+  const { status, game, players, history, config, flipped, hintLoading, undo, setFlipped, resign, agreeDraw, requestHint, backToMenu } =
+    useGameStore();
   const startReview = useReviewStore((s) => s.start);
   const [armed, setArmed] = useState<Armed>(null);
 
@@ -26,6 +27,7 @@ export function ControlBar({ onOpenSettings }: Props) {
   const playing = status === 'playing';
   const vsComputer = players.w.kind !== 'human' || players.b.kind !== 'human';
   const turn = game.turn();
+  const canAskForHelp = playing && players[turn].kind === 'human';
   // The human resigns, never the computer.
   const resigningColor = players[turn].kind === 'human' ? turn : opposite(turn);
 
@@ -43,6 +45,9 @@ export function ControlBar({ onOpenSettings }: Props) {
       </button>
       <button className="btn" onClick={() => setFlipped(!flipped)}>
         ⇅ Flip
+      </button>
+      <button className="btn" disabled={!canAskForHelp || hintLoading} onClick={() => void requestHint()}>
+        {hintLoading ? '…' : '💡 Get Help'}
       </button>
       <button className="btn" onClick={onOpenSettings}>
         ⚙ Settings

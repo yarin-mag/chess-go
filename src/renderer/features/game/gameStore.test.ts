@@ -8,6 +8,12 @@ vi.mock('@/engine/engineClient', () => ({
     const { ChessGame } = await import('@/core/chessGame');
     return new ChessGame(fen).legalMoves()[0];
   }),
+  requestMoveHint: vi.fn(async (fen: string) => {
+    const { scoreRootMoves } = await import('@/engine/search');
+    const { ANALYSIS_LEVEL } = await import('@/engine/analyzeLevel');
+    const [best] = scoreRootMoves(fen, ANALYSIS_LEVEL);
+    return { bestMove: best.move, bestSan: best.san, bestScore: best.score };
+  }),
 }));
 
 const human = { type: 'human' } as const;
@@ -137,5 +143,28 @@ describe('gameStore', () => {
     expect(state().flipped).toBe(true);
     await vi.advanceTimersByTimeAsync(700);
     expect(state().history).toHaveLength(1);
+  });
+
+  it('requestHint finds the engine best move for the side to move', async () => {
+    // A back-rank mate-in-1 position, so the hint is unambiguous.
+    state().startGame(localConfig({ fen: '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1' }));
+    await state().requestHint();
+    expect(state().hint).not.toBeNull();
+    expect(state().hint?.move).toMatchObject({ from: 'a1', to: 'a8' });
+  });
+
+  it('clears the hint once a move is played', async () => {
+    state().startGame(localConfig({ fen: '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1' }));
+    await state().requestHint();
+    expect(state().hint).not.toBeNull();
+    play('a1', 'a8');
+    expect(state().hint).toBeNull();
+  });
+
+  it('does not offer a hint when it is the computer\'s turn', async () => {
+    state().startGame(localConfig({ black: { type: 'engine', level: 'easy' } }));
+    play('e2', 'e4'); // now it's the engine's turn
+    await state().requestHint();
+    expect(state().hint).toBeNull();
   });
 });

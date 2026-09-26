@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { phraseFor } from '@/engine/explain';
 import { useGameStore } from '@/features/game/gameStore';
 import { useGameEffects } from '@/hooks/useGameEffects';
 import { Board } from './Board';
@@ -14,6 +15,7 @@ export function GameScreen() {
   useGameEffects();
   const flipped = useGameStore((s) => s.flipped);
   const gameId = useGameStore((s) => s.gameId);
+  const hint = useGameStore((s) => s.hint);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // The side facing the player sits at the bottom of the board.
@@ -26,6 +28,11 @@ export function GameScreen() {
       <aside className={styles.sidebar}>
         <ClockPanel color={top} />
         <MoveList />
+        {hint && (
+          <p className={styles.hintText}>
+            💡 <strong>{hint.san}</strong> — {hint.tags.map((tag, i) => phraseFor(tag, 'best', hint.san, i)).join(' ')}
+          </p>
+        )}
         <ClockPanel color={bottom} />
         <ControlBar onOpenSettings={() => setSettingsOpen(true)} />
       </aside>
