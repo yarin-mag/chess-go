@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { ChessGame } from '@/core/chessGame';
-import { STAGE_COUNT, dailyPuzzle, overallProgress, puzzlesForStage, totalPuzzleCount, totalStagePuzzleCount } from './puzzles';
+import {
+  STAGE_COUNT,
+  allPuzzles,
+  dailyPuzzle,
+  overallProgress,
+  puzzlesForStage,
+  shuffled,
+  totalPuzzleCount,
+  totalStagePuzzleCount,
+} from './puzzles';
 
 describe('puzzles', () => {
   it('has 8 stages', () => {
@@ -47,6 +56,43 @@ describe('puzzles', () => {
       const p = dailyPuzzle(new Date(2026, 8, 26));
       expect(() => new ChessGame(p.fen)).not.toThrow();
       expect(p.solution.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('allPuzzles', () => {
+    it('returns every puzzle, and a fresh copy each time', () => {
+      const a = allPuzzles();
+      expect(a.length).toBe(totalPuzzleCount());
+      a.pop();
+      expect(allPuzzles().length).toBe(totalPuzzleCount()); // popping the copy didn't mutate the source
+    });
+  });
+
+  describe('shuffled', () => {
+    it('contains exactly the same elements, in some order', () => {
+      const input = [1, 2, 3, 4, 5];
+      const out = shuffled(input, () => 0.5);
+      expect(out.slice().sort()).toEqual(input.slice().sort());
+    });
+
+    it('does not mutate the input array', () => {
+      const input = [1, 2, 3];
+      shuffled(input, Math.random);
+      expect(input).toEqual([1, 2, 3]);
+    });
+
+    it('is deterministic for a given rng function', () => {
+      const rng = (() => {
+        let i = 0;
+        const seq = [0.1, 0.9, 0.2];
+        return () => seq[i++ % seq.length];
+      })();
+      const rng2 = (() => {
+        let i = 0;
+        const seq = [0.1, 0.9, 0.2];
+        return () => seq[i++ % seq.length];
+      })();
+      expect(shuffled([1, 2, 3, 4], rng)).toEqual(shuffled([1, 2, 3, 4], rng2));
     });
   });
 

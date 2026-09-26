@@ -70,6 +70,18 @@
   color: var(--accent);
 }
 
+.rushBar {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+.rushScore {
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .tier {
   align-self: flex-start;
   padding: 4px 10px;

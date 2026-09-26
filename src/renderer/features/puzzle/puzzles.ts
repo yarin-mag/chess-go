@@ -30,6 +30,21 @@ export function totalPuzzleCount(): number {
   return ALL.length;
 }
 
+/** A fresh copy of every bundled puzzle, across all stages (used by Puzzle Rush's shuffled pool). */
+export function allPuzzles(): PuzzleData[] {
+  return [...ALL];
+}
+
+/** Fisher-Yates shuffle. Pure: never mutates `items`; `rng` defaults to Math.random but is injectable for tests. */
+export function shuffled<T>(items: T[], rng: () => number = Math.random): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 /** A deterministic, date-seeded pick from the whole set — the same puzzle for everyone on a given day. */
 export function dailyPuzzle(date: Date = new Date()): PuzzleData {
   const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;

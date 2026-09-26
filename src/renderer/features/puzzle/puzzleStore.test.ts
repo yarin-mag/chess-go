@@ -115,7 +115,7 @@ describe('puzzleStore', () => {
     usePuzzleStore.getState().startDaily();
     const s = usePuzzleStore.getState();
     expect(s.status).toBe('playing');
-    expect(s.isDaily).toBe(true);
+    expect(s.mode).toBe('daily');
     expect(s.puzzle).not.toBeNull();
   });
 
@@ -138,5 +138,78 @@ describe('puzzleStore', () => {
     usePuzzleStore.getState().startDaily();
     usePuzzleStore.getState().next();
     expect(usePuzzleStore.getState().status).toBe('map');
+  });
+
+  describe('Puzzle Rush', () => {
+    it('starts with a shuffled puzzle, a deadline, and a zero score', () => {
+      const startedAt = Date.now();
+      usePuzzleStore.getState().startRush('3');
+      const s = usePuzzleStore.getState();
+      expect(s.status).toBe('playing');
+      expect(s.mode).toBe('rush');
+      expect(s.puzzle).not.toBeNull();
+      expect(s.rushSolvedCount).toBe(0);
+      expect(s.rushDeadline).toBeGreaterThanOrEqual(startedAt + 3 * 60_000);
+    });
+
+    it('chains straight to the next puzzle on a correct solve, without a solved pause', async () => {
+      usePuzzleStore.getState().startRush('3');
+      const puzzle = usePuzzleStore.getState().puzzle!;
+      for (let i = 0; i < puzzle.solution.length; i += 2) {
+        const m = puzzle.solution[i];
+        await play(m.slice(0, 2), m.slice(2, 4));
+        if (i + 1 < puzzle.solution.length) await new Promise((r) => setTimeout(r, 700));
+      }
+      expect(usePuzzleStore.getState().status).toBe('playing'); // never 'solved' in rush
+      expect(usePuzzleStore.getState().rushSolvedCount).toBe(1);
+      expect(usePuzzleStore.getState().puzzle!.id).not.toBe(puzzle.id);
+    });
+
+    it('a wrong move ends the run immediately (no retry) and records the score', async () => {
+      usePuzzleStore.getState().startRush('3');
+      const puzzle = usePuzzleStore.getState().puzzle!;
+      const legalButWrong = usePuzzleStore
+        .getState()
+        .game.legalMoves()
+        .find((m) => `${m.from}${m.to}` !== puzzle.solution[0]);
+      expect(legalButWrong).toBeDefined();
+      await play(legalButWrong!.from, legalButWrong!.to);
+      const s = usePuzzleStore.getState();
+      expect(s.status).toBe('rushOver');
+      expect(s.rushResult?.reason).toBe('wrong');
+      expect(s.feedback).not.toBeNull();
+    });
+
+    it('ticking past the deadline ends the run for running out of time', () => {
+      usePuzzleStore.getState().startRush('3');
+      usePuzzleStore.getState().tickRush(Date.now());
+      expect(usePuzzleStore.getState().status).toBe('playing');
+      usePuzzleStore.getState().tickRush(usePuzzleStore.getState().rushDeadline! + 1);
+      const s = usePuzzleStore.getState();
+      expect(s.status).toBe('rushOver');
+      expect(s.rushResult?.reason).toBe('timeUp');
+    });
+
+    it('records a new best score with the progress store once at least one puzzle is solved', async () => {
+      usePuzzleProgressStore.setState({ rushBest: { '3': 0, '5': 0 } });
+      usePuzzleStore.getState().startRush('3');
+      const puzzle = usePuzzleStore.getState().puzzle!;
+      for (let i = 0; i < puzzle.solution.length; i += 2) {
+        const m = puzzle.solution[i];
+        await play(m.slice(0, 2), m.slice(2, 4));
+        if (i + 1 < puzzle.solution.length) await new Promise((r) => setTimeout(r, 700));
+      }
+      expect(usePuzzleStore.getState().rushSolvedCount).toBe(1);
+
+      usePuzzleStore.getState().tickRush(usePuzzleStore.getState().rushDeadline! + 1);
+      expect(usePuzzleStore.getState().rushResult?.isNewBest).toBe(true);
+      expect(usePuzzleProgressStore.getState().rushBest['3']).toBe(1);
+    });
+
+    it('disables hints during a rush', () => {
+      usePuzzleStore.getState().startRush('3');
+      usePuzzleStore.getState().showHint();
+      expect(usePuzzleStore.getState().hint).toBeNull();
+    });
   });
 });
