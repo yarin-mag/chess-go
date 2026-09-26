@@ -110,4 +110,33 @@ describe('puzzleStore', () => {
     usePuzzleStore.getState().showMap();
     expect(usePuzzleStore.getState().status).toBe('map');
   });
+
+  it('startDaily loads a real puzzle marked as daily', () => {
+    usePuzzleStore.getState().startDaily();
+    const s = usePuzzleStore.getState();
+    expect(s.status).toBe('playing');
+    expect(s.isDaily).toBe(true);
+    expect(s.puzzle).not.toBeNull();
+  });
+
+  it('solving the daily puzzle records a solve without moving ladder progress', async () => {
+    const before = usePuzzleProgressStore.getState();
+    usePuzzleStore.getState().startDaily();
+    const solution = usePuzzleStore.getState().puzzle!.solution;
+    for (let i = 0; i < solution.length; i += 2) {
+      const m = solution[i];
+      await play(m.slice(0, 2), m.slice(2, 4));
+      if (i + 1 < solution.length) await new Promise((r) => setTimeout(r, 700));
+    }
+    expect(usePuzzleStore.getState().status).toBe('solved');
+    expect(usePuzzleProgressStore.getState().solvedCount).toBe(before.solvedCount + 1);
+    expect(usePuzzleProgressStore.getState().furthestStage).toBe(before.furthestStage);
+    expect(usePuzzleProgressStore.getState().furthestPuzzleIndex).toBe(before.furthestPuzzleIndex);
+  });
+
+  it("next() after the daily puzzle goes to the map, not a ladder puzzle", () => {
+    usePuzzleStore.getState().startDaily();
+    usePuzzleStore.getState().next();
+    expect(usePuzzleStore.getState().status).toBe('map');
+  });
 });

@@ -1,6 +1,6 @@
 import { useSettingsStore } from '@/features/settings/settingsStore';
 
-export type SoundKind = 'move' | 'capture' | 'check' | 'end';
+export type SoundKind = 'move' | 'capture' | 'check' | 'end' | 'wrong';
 
 interface Tone {
   freq: number;
@@ -25,6 +25,10 @@ const SOUNDS: Record<SoundKind, Tone[]> = {
     { freq: 523, at: 0, duration: 0.14, type: 'sine', volume: 0.25 },
     { freq: 392, at: 0.14, duration: 0.14, type: 'sine', volume: 0.25 },
     { freq: 262, at: 0.28, duration: 0.3, type: 'sine', volume: 0.25 },
+  ],
+  wrong: [
+    { freq: 220, at: 0, duration: 0.1, type: 'sawtooth', volume: 0.15 },
+    { freq: 165, at: 0.09, duration: 0.16, type: 'sawtooth', volume: 0.15 },
   ],
 };
 

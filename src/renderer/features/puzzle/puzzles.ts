@@ -30,6 +30,14 @@ export function totalPuzzleCount(): number {
   return ALL.length;
 }
 
+/** A deterministic, date-seeded pick from the whole set — the same puzzle for everyone on a given day. */
+export function dailyPuzzle(date: Date = new Date()): PuzzleData {
+  const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return ALL[hash % ALL.length];
+}
+
 /** How far (0-100) through the whole ladder `furthestStage`/`furthestPuzzleIndex` reaches. */
 export function overallProgress(furthestStage: number, furthestPuzzleIndex: number): number {
   let solvedCount = 0;

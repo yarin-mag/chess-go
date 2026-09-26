@@ -6,7 +6,7 @@ import { requestMoveGrade } from '@/engine/engineClient';
 import { classify, type Tier } from '@/engine/classify';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { usePuzzleProgressStore } from './puzzleProgressStore';
-import { puzzlesForStage, totalStagePuzzleCount, type PuzzleData } from './puzzles';
+import { dailyPuzzle, puzzlesForStage, totalStagePuzzleCount, type PuzzleData } from './puzzles';
 
 type PuzzleStatus = 'idle' | 'map' | 'playing' | 'wrong' | 'solved';
 
@@ -35,8 +35,10 @@ interface PuzzleState {
   flipped: boolean;
   feedback: WrongMoveFeedback | null;
   hint: PuzzleHint | null;
+  isDaily: boolean;
 
   start(stage: number, puzzleIndex: number): void;
+  startDaily(): void;
   select(sq: Square): Promise<void>;
   showHint(): void;
   showMap(): void;
@@ -55,23 +57,8 @@ const OPPONENT_REPLY_DELAY_MS = 600;
 
 const noSelection: Pick<PuzzleState, 'selected' | 'targets'> = { selected: null, targets: [] };
 
-export const usePuzzleStore = create<PuzzleState>((set, get) => ({
-  status: 'idle',
-  stage: 0,
-  puzzleIndex: 0,
-  puzzle: null,
-  game: new ChessGame(),
-  history: [],
-  solutionStep: 0,
-  lastMove: null,
-  flipped: false,
-  feedback: null,
-  hint: null,
-  ...noSelection,
-
-  start(stage, puzzleIndex) {
-    const puzzle = puzzlesForStage(stage)[puzzleIndex];
-    if (!puzzle) return;
+export const usePuzzleStore = create<PuzzleState>((set, get) => {
+  const load = (puzzle: PuzzleData, stage: number, puzzleIndex: number, isDaily: boolean) => {
     const game = new ChessGame(puzzle.fen);
     set({
       status: 'playing',
@@ -85,9 +72,34 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
       flipped: game.turn() === 'b',
       feedback: null,
       hint: null,
+      isDaily,
       ...noSelection,
     });
-  },
+  };
+
+  return {
+    status: 'idle',
+    stage: 0,
+    puzzleIndex: 0,
+    puzzle: null,
+    game: new ChessGame(),
+    history: [],
+    solutionStep: 0,
+    lastMove: null,
+    flipped: false,
+    feedback: null,
+    hint: null,
+    isDaily: false,
+    ...noSelection,
+
+    start(stage, puzzleIndex) {
+      const puzzle = puzzlesForStage(stage)[puzzleIndex];
+      if (puzzle) load(puzzle, stage, puzzleIndex, false);
+    },
+
+    startDaily() {
+      load(dailyPuzzle(), -1, -1, true);
+    },
 
   async select(sq) {
     const { status, game, selected, targets, puzzle, solutionStep } = get();
@@ -117,10 +129,14 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
 
       if (nextStep >= puzzle!.solution.length) {
         set({ status: 'solved' });
-        const size = totalStagePuzzleCount(get().stage);
-        const solvedAt = get().puzzleIndex;
-        const [nextStage, nextIndex] = solvedAt + 1 >= size ? [get().stage + 1, 0] : [get().stage, solvedAt + 1];
-        usePuzzleProgressStore.getState().markSolved(nextStage, nextIndex);
+        if (get().isDaily) {
+          usePuzzleProgressStore.getState().recordDailySolve();
+        } else {
+          const size = totalStagePuzzleCount(get().stage);
+          const solvedAt = get().puzzleIndex;
+          const [nextStage, nextIndex] = solvedAt + 1 >= size ? [get().stage + 1, 0] : [get().stage, solvedAt + 1];
+          usePuzzleProgressStore.getState().markSolved(nextStage, nextIndex);
+        }
         return;
       }
 
@@ -168,14 +184,19 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     if (get().status === 'wrong') set({ status: 'playing', feedback: null, ...noSelection });
   },
 
-  next() {
-    const { stage, puzzleIndex } = get();
-    const size = totalStagePuzzleCount(stage);
-    const [nextStage, nextIndex] = puzzleIndex + 1 >= size ? [stage + 1, 0] : [stage, puzzleIndex + 1];
-    get().start(nextStage, nextIndex);
-  },
+    next() {
+      if (get().isDaily) {
+        get().showMap();
+        return;
+      }
+      const { stage, puzzleIndex } = get();
+      const size = totalStagePuzzleCount(stage);
+      const [nextStage, nextIndex] = puzzleIndex + 1 >= size ? [stage + 1, 0] : [stage, puzzleIndex + 1];
+      get().start(nextStage, nextIndex);
+    },
 
-  exit() {
-    set({ status: 'idle', puzzle: null, ...noSelection });
-  },
-}));
+    exit() {
+      set({ status: 'idle', puzzle: null, ...noSelection });
+    },
+  };
+});
