@@ -1,0 +1,125 @@
+.screen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.card {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.header p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.insight {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(217, 164, 65, 0.12);
+  border: 1px solid rgba(217, 164, 65, 0.4);
+  font-size: 14px;
+}
+
+.sectionTitle {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tierBars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tierRow {
+  display: grid;
+  grid-template-columns: 90px 1fr 32px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.tierName {
+  color: var(--muted);
+}
+
+.tierCount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.barTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.brilliant { background: #2dd4bf; }
+.best { background: #4ade80; }
+.good { background: #a3e635; }
+.inaccuracy { background: #facc15; }
+.mistake { background: #fb923c; }
+.blunder { background: #f87171; }
+
+.tagList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tagRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--panel-raised);
+  font-size: 14px;
+}
+
+.tagCount {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
