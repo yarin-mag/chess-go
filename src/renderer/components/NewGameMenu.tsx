@@ -6,6 +6,7 @@ import { useGameStore } from '@/features/game/gameStore';
 import { usePuzzleProgressStore } from '@/features/puzzle/puzzleProgressStore';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 import { overallProgress } from '@/features/puzzle/puzzles';
+import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStore';
 import { Segmented } from './ui/Segmented';
 import styles from './NewGameMenu.module.css';
 
@@ -31,6 +32,7 @@ export function NewGameMenu() {
   const showPuzzleMap = usePuzzleStore((s) => s.showMap);
   const { furthestStage, furthestPuzzleIndex } = usePuzzleProgressStore();
   const puzzleProgress = overallProgress(furthestStage, furthestPuzzleIndex);
+  const showOpeningExplorer = useOpeningExplorerStore((s) => s.show);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -145,6 +147,10 @@ export function NewGameMenu() {
 
         <button className="btn" onClick={showPuzzleMap}>
           🧩 Puzzles {puzzleProgress > 0 && `· ${puzzleProgress}%`}
+        </button>
+
+        <button className="btn" onClick={showOpeningExplorer}>
+          📖 Openings
         </button>
       </motion.div>
     </div>
