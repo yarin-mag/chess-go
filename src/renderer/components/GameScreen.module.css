@@ -24,6 +24,23 @@
   font-size: 14px;
 }
 
+.hintWhy {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.hintWhy:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 @media (max-width: 820px) {
   .screen {
     flex-direction: column;
@@ -35,5 +52,12 @@
 
   .sidebar {
     height: auto;
+  }
+
+  /* The move list is collapsed by default here, freeing up vertical space the fixed 62vh board-size cap
+     (global.css) doesn't otherwise use — so let the board grow while the list stays collapsed, and shrink
+     back to normal the moment the player expands it. */
+  .screen[data-moves-collapsed='true'] {
+    --board-size: min(calc(100vw - 32px), 74vh);
   }
 }

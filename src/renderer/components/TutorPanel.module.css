@@ -110,6 +110,29 @@
   border-color: var(--accent);
 }
 
+.tagLine {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.whyBtn {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.whyBtn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 .moveDetail {
   padding: 8px 10px;
   border-radius: 8px;

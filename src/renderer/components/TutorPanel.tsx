@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { describeMove, describePotentialMove } from '@/core/describeMove';
 import { useReviewStore } from '@/features/review/reviewStore';
-import { phraseFor } from '@/engine/explain';
+import { phraseFor, reasonFor } from '@/engine/explain';
 import { EvalBar } from './EvalBar';
+import { ReasonModal } from './ReasonModal';
 import styles from './TutorPanel.module.css';
 
 const TIER_LABEL: Record<string, string> = {
@@ -33,6 +34,7 @@ function ExpandableMove({ label, san, detail }: { label: string; san: string; de
 export function TutorPanel() {
   const { analysis, index, status, progress, goTo, history } = useReviewStore();
   const current = index >= 0 ? analysis[index] : null;
+  const [reasonOpen, setReasonOpen] = useState(false);
 
   if (status === 'analyzing') {
     const percent = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
@@ -72,7 +74,12 @@ export function TutorPanel() {
           {current ? (
             <>
               <ExpandableMove key={`played-${current.ply}`} label="Played:" san={current.move.san} detail={describeMove(current.move)} />
-              <p>{current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}</p>
+              <p className={styles.tagLine}>
+                {current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
+                <button className={styles.whyBtn} onClick={() => setReasonOpen(true)}>
+                  Why?
+                </button>
+              </p>
               {current.tier !== 'best' && current.tier !== 'brilliant' && (
                 <ExpandableMove
                   key={`best-${current.ply}`}
@@ -96,6 +103,15 @@ export function TutorPanel() {
           Next →
         </button>
       </div>
+
+      {current && (
+        <ReasonModal
+          open={reasonOpen}
+          onClose={() => setReasonOpen(false)}
+          title={`Why ${current.move.san}?`}
+          text={current.tags.map((tag, i) => reasonFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
+        />
+      )}
     </div>
   );
 }

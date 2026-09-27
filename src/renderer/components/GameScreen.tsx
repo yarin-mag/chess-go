@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { phraseFor } from '@/engine/explain';
+import { phraseFor, reasonFor } from '@/engine/explain';
 import { useGameStore } from '@/features/game/gameStore';
 import { useGameEffects } from '@/hooks/useGameEffects';
 import { Board } from './Board';
@@ -7,6 +7,7 @@ import { ClockPanel } from './ClockPanel';
 import { ControlBar } from './ControlBar';
 import { GameOverModal } from './GameOverModal';
 import { MoveList } from './MoveList';
+import { ReasonModal } from './ReasonModal';
 import { SettingsPanel } from './SettingsPanel';
 import styles from './GameScreen.module.css';
 
@@ -17,20 +18,37 @@ export function GameScreen() {
   const gameId = useGameStore((s) => s.gameId);
   const hint = useGameStore((s) => s.hint);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Collapsed by default so the move list never grows tall enough to cover the board (see MoveList);
+  // on the stacked mobile layout, collapsing also lets the board grow (see GameScreen.module.css).
+  const [movesCollapsed, setMovesCollapsed] = useState(true);
+  // Captured at open time (title + text) rather than read live from `hint`, so the modal's content
+  // doesn't change or vanish out from under the player if a move clears the hint while it's open.
+  const [hintReason, setHintReason] = useState<{ title: string; text: string } | null>(null);
 
   // The side facing the player sits at the bottom of the board.
   const bottom = flipped ? 'b' : 'w';
   const top = flipped ? 'w' : 'b';
 
   return (
-    <div className={styles.screen}>
+    <div className={styles.screen} data-moves-collapsed={movesCollapsed}>
       <Board />
       <aside className={styles.sidebar}>
         <ClockPanel color={top} />
-        <MoveList />
+        <MoveList collapsed={movesCollapsed} onToggleCollapsed={() => setMovesCollapsed((c) => !c)} />
         {hint && (
           <p className={styles.hintText}>
             💡 <strong>{hint.san}</strong> — {hint.tags.map((tag, i) => phraseFor(tag, 'best', hint.san, i)).join(' ')}
+            <button
+              className={styles.hintWhy}
+              onClick={() =>
+                setHintReason({
+                  title: `Why ${hint.san}?`,
+                  text: hint.tags.map((tag, i) => reasonFor(tag, 'best', hint.san, i)).join(' '),
+                })
+              }
+            >
+              Why?
+            </button>
           </p>
         )}
         <ClockPanel color={bottom} />
@@ -38,6 +56,12 @@ export function GameScreen() {
       </aside>
       <GameOverModal key={gameId} />
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ReasonModal
+        open={hintReason !== null}
+        onClose={() => setHintReason(null)}
+        title={hintReason?.title ?? ''}
+        text={hintReason?.text ?? ''}
+      />
     </div>
   );
 }

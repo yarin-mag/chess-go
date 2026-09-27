@@ -9,13 +9,30 @@ interface Props {
   activePly?: number;
   /** Overrides the live game store's history (used by the review screen, which has its own snapshot). */
   history?: MoveRecord[];
+  /**
+   * Controlled collapse state. Only the live game screen passes this — it turns the list into a toggle
+   * header + list, collapsed by default so it never grows tall enough to cover the board. Left unset
+   * (review/puzzle screens), the list is always fully shown with no header, as before.
+   */
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+}
+
+/** "14. Qd2" for White's move, "14...Qd2" for Black's — the standard way to name a lone move. */
+function lastMoveLabel(history: MoveRecord[]): string {
+  if (history.length === 0) return 'No moves yet';
+  const ply = history.length - 1;
+  const number = Math.floor(ply / 2) + 1;
+  return ply % 2 === 0 ? `${number}. ${history[ply].san}` : `${number}...${history[ply].san}`;
 }
 
 /** Move history in SAN, two plies per row; scrolls to the latest move. */
-export function MoveList({ onSelectPly, activePly, history: historyOverride }: Props = {}) {
+export function MoveList({ onSelectPly, activePly, history: historyOverride, collapsed, onToggleCollapsed }: Props = {}) {
   const liveHistory = useGameStore((s) => s.history);
   const history = historyOverride ?? liveHistory;
-  const endRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const collapsible = collapsed !== undefined;
+  const showList = !collapsible || !collapsed;
 
   const rows = useMemo(() => {
     const out: { number: number; white: string; black?: string }[] = [];
@@ -26,11 +43,14 @@ export function MoveList({ onSelectPly, activePly, history: historyOverride }: P
   }, [history]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [history]);
+    if (!showList) return;
+    // Scroll only the list itself; scrollIntoView would also scroll the page in the stacked mobile layout.
+    const el = listRef.current;
+    el?.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, [history, showList]);
 
-  return (
-    <div className={styles.list}>
+  const list = showList && (
+    <div ref={listRef} className={styles.list}>
       {rows.length === 0 && <p className={styles.empty}>Moves will appear here</p>}
       {rows.map((r) => {
         const whitePly = (r.number - 1) * 2;
@@ -53,7 +73,19 @@ export function MoveList({ onSelectPly, activePly, history: historyOverride }: P
           </div>
         );
       })}
-      <div ref={endRef} />
+    </div>
+  );
+
+  if (!collapsible) return list || null;
+
+  return (
+    <div className={styles.wrap}>
+      <button className={styles.toggle} onClick={onToggleCollapsed} aria-expanded={!collapsed}>
+        <span>Moves{history.length > 0 && ` (${history.length})`}</span>
+        <span className={styles.toggleMove}>{lastMoveLabel(history)}</span>
+        <span className={styles.chevron}>{collapsed ? '▾' : '▴'}</span>
+      </button>
+      {list}
     </div>
   );
 }

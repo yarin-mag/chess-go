@@ -1,0 +1,6 @@
+{
+  "appId": "com.bchess.app",
+  "appName": "B-Chess",
+  "webDir": "dist-web",
+  "backgroundColor": "#16150f"
+}

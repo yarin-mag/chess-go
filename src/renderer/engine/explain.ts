@@ -77,4 +77,4 @@ export function explainTags(ctx: ExplainContext): ExplanationTag[] {
   return tags;
 }
 
-export { phraseFor } from './phrases';
+export { phraseFor, reasonFor } from './phrases';

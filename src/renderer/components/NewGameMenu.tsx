@@ -8,6 +8,7 @@ import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 import { overallProgress } from '@/features/puzzle/puzzles';
 import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStore';
 import { useWeaknessDashboardStore } from '@/features/history/weaknessDashboardStore';
+import { useSavedGamesVisibilityStore } from '@/features/history/savedGamesVisibilityStore';
 import { Segmented } from './ui/Segmented';
 import styles from './NewGameMenu.module.css';
 
@@ -35,6 +36,7 @@ export function NewGameMenu() {
   const puzzleProgress = overallProgress(furthestStage, furthestPuzzleIndex);
   const showOpeningExplorer = useOpeningExplorerStore((s) => s.show);
   const showWeaknessDashboard = useWeaknessDashboardStore((s) => s.show);
+  const showSavedGames = useSavedGamesVisibilityStore((s) => s.show);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -157,6 +159,10 @@ export function NewGameMenu() {
 
         <button className="btn" onClick={showWeaknessDashboard}>
           📊 My Stats
+        </button>
+
+        <button className="btn" onClick={showSavedGames}>
+          🗂️ Saved games
         </button>
       </motion.div>
     </div>

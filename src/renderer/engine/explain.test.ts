@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ChessGame } from '@/core/chessGame';
-import { explainTags, isHanging, sacrificesMaterial, phraseFor } from './explain';
+import { explainTags, isHanging, sacrificesMaterial, phraseFor, reasonFor } from './explain';
 import type { MoveGrade } from './analyze';
 
 const grade = (bestScore: number, playedScore: number): MoveGrade => ({
@@ -70,5 +70,21 @@ describe('explainTags', () => {
 describe('phraseFor', () => {
   it('substitutes the move san', () => {
     expect(phraseFor('hangsPiece', 'blunder', 'e4', 0)).toContain('e4');
+  });
+});
+
+describe('reasonFor', () => {
+  it('substitutes the move san', () => {
+    expect(reasonFor('hangsPiece', 'blunder', 'e4', 0)).toContain('e4');
+  });
+
+  it('is longer than the short phrase for the same tag, since it is the expanded "why"', () => {
+    const short = phraseFor('developsPiece', 'good', 'Nf3', 0);
+    const long = reasonFor('developsPiece', 'good', 'Nf3', 0);
+    expect(long.length).toBeGreaterThan(short.length);
+  });
+
+  it('falls back to the solid reason for an unknown tag/tier combo', () => {
+    expect(reasonFor('walksIntoMate', 'brilliant', 'Qh5', 0)).toBeTruthy();
   });
 });

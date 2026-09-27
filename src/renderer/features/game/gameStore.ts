@@ -13,6 +13,7 @@ import {
 } from '@/core/types';
 import { Clock } from '@/features/clock/clock';
 import { UNTIMED, toClock } from '@/features/clock/presets';
+import { useSavedGamesStore } from '@/features/history/savedGamesStore';
 import { requestMoveHint } from '@/engine/engineClient';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { createPlayer, type PlayerController } from './players';
@@ -84,10 +85,12 @@ const noSelection: Pick<GameState, 'selected' | 'targets' | 'pendingPromotion'> 
 };
 
 export const useGameStore = create<GameState>((set, get) => {
-  /** Ends the game with `result`, freezing the clock and cancelling engine work. */
+  /** Ends the game with `result`, freezing the clock, saving it for later replay, and cancelling engine work. */
   const finish = (result: GameResult, now: number) => {
     abortEngine();
     get().clock.stop(now);
+    const { config, history } = get();
+    if (history.length > 0) useSavedGamesStore.getState().saveGame(config, history, result);
     set({ status: 'over', result, engineThinking: false, ...noSelection });
   };
 

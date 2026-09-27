@@ -18,6 +18,8 @@
     "preview:web": "vite preview --config vite.config.web.ts"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.2",
+    "@capacitor/core": "^6.2.2",
     "chess.js": "^1.4.0",
     "framer-motion": "^13.4.0",
     "peerjs": "^1.5.5",
@@ -26,6 +28,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.2.2",
     "@types/node": "^26.6.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
