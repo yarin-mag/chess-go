@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { opposite, type Color, type TimeControl } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import { RemotePlayer } from '@/features/game/players';
+import { useOnlineLobbyStore } from './onlineLobbyVisibilityStore';
 import { hostRoom, joinRoom, type OnlineConnection } from './peerConnection';
 import { isKnownReaction, type NetworkMessage } from './protocol';
 import { useReactionStore } from './reactionStore';
@@ -46,6 +47,7 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
     attachSharedListeners(connection);
     const remotePlayer = new RemotePlayer(connection);
     set({ status: 'connected', connection, localColor });
+    useOnlineLobbyStore.getState().hide(); // leaving the game later via backToMenu shouldn't re-show a stale lobby
     useGameStore.getState().startGame({
       white: localColor === 'w' ? { type: 'human' } : { type: 'remote' },
       black: localColor === 'b' ? { type: 'human' } : { type: 'remote' },

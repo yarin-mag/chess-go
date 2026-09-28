@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { phraseFor, reasonFor } from '@/engine/explain';
 import { useGameStore } from '@/features/game/gameStore';
+import { useOnlineStore } from '@/features/online/onlineStore';
+import { useOnlineSync } from '@/features/online/useOnlineSync';
 import { useGameEffects } from '@/hooks/useGameEffects';
 import { Board } from './Board';
 import { ClockPanel } from './ClockPanel';
 import { ControlBar } from './ControlBar';
 import { GameOverModal } from './GameOverModal';
 import { MoveList } from './MoveList';
+import { ReactionBubble } from './ReactionBubble';
 import { ReasonModal } from './ReasonModal';
 import { SettingsPanel } from './SettingsPanel';
 import styles from './GameScreen.module.css';
@@ -17,6 +20,8 @@ export function GameScreen() {
   const flipped = useGameStore((s) => s.flipped);
   const gameId = useGameStore((s) => s.gameId);
   const hint = useGameStore((s) => s.hint);
+  const isOnline = useOnlineStore((s) => s.status === 'connected');
+  useOnlineSync(); // no-ops internally when there's no connection
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Collapsed by default so the move list never grows tall enough to cover the board (see MoveList);
   // on the stacked mobile layout, collapsing also lets the board grow (see GameScreen.module.css).
@@ -33,6 +38,7 @@ export function GameScreen() {
     <div className={styles.screen} data-moves-collapsed={movesCollapsed}>
       <Board />
       <aside className={styles.sidebar}>
+        {isOnline && <p className={styles.onlinePill}>🌐 Online</p>}
         <ClockPanel color={top} />
         <MoveList collapsed={movesCollapsed} onToggleCollapsed={() => setMovesCollapsed((c) => !c)} />
         {hint && (
@@ -56,6 +62,7 @@ export function GameScreen() {
       </aside>
       <GameOverModal key={gameId} />
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      {isOnline && <ReactionBubble />}
       <ReasonModal
         open={hintReason !== null}
         onClose={() => setHintReason(null)}

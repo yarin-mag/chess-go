@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { opposite } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
+import { useOnlineStore } from '@/features/online/onlineStore';
 import { useReviewStore } from '@/features/review/reviewStore';
+import { ReactionPicker } from './ReactionPicker';
 import styles from './ControlBar.module.css';
 
 type Armed = 'resign' | 'draw' | null;
@@ -16,6 +18,9 @@ export function ControlBar({ onOpenSettings }: Props) {
   const { status, game, players, history, config, flipped, hintLoading, undo, setFlipped, resign, agreeDraw, requestHint, backToMenu } =
     useGameStore();
   const startReview = useReviewStore((s) => s.start);
+  const onlineConnection = useOnlineStore((s) => s.connection);
+  const incomingDrawOffer = useOnlineStore((s) => s.incomingDrawOffer);
+  const clearDrawOffer = useOnlineStore((s) => s.clearDrawOffer);
   const [armed, setArmed] = useState<Armed>(null);
 
   useEffect(() => {
@@ -25,7 +30,8 @@ export function ControlBar({ onOpenSettings }: Props) {
   }, [armed]);
 
   const playing = status === 'playing';
-  const vsComputer = players.w.kind !== 'human' || players.b.kind !== 'human';
+  const isOnline = players.w.kind === 'remote' || players.b.kind === 'remote';
+  const vsComputer = !isOnline && (players.w.kind !== 'human' || players.b.kind !== 'human');
   const turn = game.turn();
   const canAskForHelp = playing && players[turn].kind === 'human';
   // The human resigns, never the computer.
@@ -40,7 +46,7 @@ export function ControlBar({ onOpenSettings }: Props) {
 
   return (
     <div className={styles.bar}>
-      <button className="btn" disabled={!playing || history.length === 0} onClick={() => undo()}>
+      <button className="btn" disabled={!playing || history.length === 0 || isOnline} onClick={() => undo()}>
         ↶ Undo
       </button>
       <button className="btn" onClick={() => setFlipped(!flipped)}>
@@ -55,11 +61,14 @@ export function ControlBar({ onOpenSettings }: Props) {
       <button
         className={`btn btn-danger ${armed === 'resign' ? 'armed' : ''}`}
         disabled={!playing}
-        onClick={confirm('resign', () => resign(resigningColor))}
+        onClick={confirm('resign', () => {
+          resign(resigningColor);
+          if (isOnline) onlineConnection?.send({ type: 'resign' });
+        })}
       >
         {armed === 'resign' ? 'Sure?' : '⚑ Resign'}
       </button>
-      {!vsComputer && (
+      {!vsComputer && !isOnline && (
         <button
           className={`btn btn-danger ${armed === 'draw' ? 'armed' : ''}`}
           disabled={!playing}
@@ -68,6 +77,39 @@ export function ControlBar({ onOpenSettings }: Props) {
           {armed === 'draw' ? 'Agree?' : '½ Draw'}
         </button>
       )}
+      {isOnline && !incomingDrawOffer && (
+        <button
+          className={`btn ${armed === 'draw' ? 'btn-danger armed' : ''}`}
+          disabled={!playing}
+          onClick={confirm('draw', () => onlineConnection?.send({ type: 'drawOffer' }))}
+        >
+          {armed === 'draw' ? 'Send offer?' : '🤝 Offer Draw'}
+        </button>
+      )}
+      {isOnline && incomingDrawOffer && (
+        <>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              onlineConnection?.send({ type: 'drawResponse', accepted: true });
+              clearDrawOffer();
+              agreeDraw();
+            }}
+          >
+            Accept draw
+          </button>
+          <button
+            className="btn"
+            onClick={() => {
+              onlineConnection?.send({ type: 'drawResponse', accepted: false });
+              clearDrawOffer();
+            }}
+          >
+            Decline
+          </button>
+        </>
+      )}
+      {isOnline && <ReactionPicker />}
       {status === 'over' && (
         <button className="btn btn-primary" onClick={() => startReview(config, history)}>
           🎓 Review

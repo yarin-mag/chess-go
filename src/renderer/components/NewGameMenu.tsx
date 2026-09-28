@@ -9,6 +9,7 @@ import { overallProgress } from '@/features/puzzle/puzzles';
 import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStore';
 import { useWeaknessDashboardStore } from '@/features/history/weaknessDashboardStore';
 import { useSavedGamesVisibilityStore } from '@/features/history/savedGamesVisibilityStore';
+import { useOnlineLobbyStore } from '@/features/online/onlineLobbyVisibilityStore';
 import { Segmented } from './ui/Segmented';
 import styles from './NewGameMenu.module.css';
 
@@ -37,6 +38,7 @@ export function NewGameMenu() {
   const showOpeningExplorer = useOpeningExplorerStore((s) => s.show);
   const showWeaknessDashboard = useWeaknessDashboardStore((s) => s.show);
   const showSavedGames = useSavedGamesVisibilityStore((s) => s.show);
+  const showOnlineLobby = useOnlineLobbyStore((s) => s.show);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -163,6 +165,10 @@ export function NewGameMenu() {
 
         <button className="btn" onClick={showSavedGames}>
           🗂️ Saved games
+        </button>
+
+        <button className="btn" onClick={showOnlineLobby}>
+          🌐 Play Online
         </button>
       </motion.div>
     </div>

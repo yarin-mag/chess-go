@@ -1,0 +1,18 @@
+.bubble {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(80vw, 320px);
+  padding: 14px 22px;
+  border-radius: 16px;
+  border: 1px solid var(--accent);
+  background: var(--panel);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none; /* never blocks clicking the board underneath */
+  z-index: 40;
+}
