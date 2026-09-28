@@ -1,6 +1,7 @@
 import { ChessGame } from '@/core/chessGame';
 import type { Level, MoveInput, PlayerKind } from '@/core/types';
 import { requestEngineMove } from '@/engine/engineClient';
+import type { OnlineConnection } from '@/features/online/peerConnection';
 
 /**
  * Anything that can supply moves for one side. This is the seam for phase 2:
@@ -61,6 +62,31 @@ class EnginePlayer implements PlayerController {
       const moves = new ChessGame(fen).legalMoves();
       return moves[Math.floor(Math.random() * moves.length)];
     }
+  }
+}
+
+export class RemotePlayer implements PlayerController {
+  readonly kind = 'remote' as const;
+
+  constructor(private readonly connection: OnlineConnection) {}
+
+  requestMove(_fen: string, signal: AbortSignal): Promise<MoveInput> {
+    return new Promise((resolve, reject) => {
+      if (signal.aborted) return reject(abortError());
+      const unsubscribe = this.connection.onMessage((msg) => {
+        if (msg.type !== 'move') return;
+        unsubscribe();
+        resolve(msg.move);
+      });
+      signal.addEventListener(
+        'abort',
+        () => {
+          unsubscribe();
+          reject(abortError());
+        },
+        { once: true },
+      );
+    });
   }
 }
 
