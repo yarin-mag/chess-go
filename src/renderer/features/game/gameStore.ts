@@ -30,6 +30,8 @@ export interface GameConfig {
   timeControl: TimeControl;
   /** Optional start position (used by tests and future "set up position"). */
   fen?: string;
+  /** Present only for online games: this seat's actual controller is `player`, not derived from white/black. */
+  remote?: { color: Color; player: PlayerController };
 }
 
 export interface GameState {
@@ -147,7 +149,10 @@ export const useGameStore = create<GameState>((set, get) => {
         config,
         game,
         clock,
-        players: { w: createPlayer(config.white), b: createPlayer(config.black) },
+        players: {
+          w: config.remote?.color === 'w' ? config.remote.player : createPlayer(config.white),
+          b: config.remote?.color === 'b' ? config.remote.player : createPlayer(config.black),
+        },
         gameId: get().gameId + 1,
         fen: game.fen(),
         history: [],

@@ -167,4 +167,24 @@ describe('gameStore', () => {
     await state().requestHint();
     expect(state().hint).toBeNull();
   });
+
+  it('uses the injected remote controller for the remote seat instead of creating one', async () => {
+    const remoteMove = vi.fn(async (_fen: string, signal: AbortSignal) => {
+      return new Promise<{ from: string; to: string }>((resolve, reject) => {
+        signal.addEventListener('abort', () => reject(new Error('aborted')));
+        // never resolves on its own in this test — we just check it's the one being asked
+      });
+    });
+    const remotePlayer = { kind: 'remote' as const, requestMove: remoteMove };
+
+    state().startGame({
+      white: { type: 'human' },
+      black: { type: 'remote' },
+      timeControl: UNTIMED,
+      remote: { color: 'b', player: remotePlayer },
+    });
+    play('e2', 'e4'); // the human's move; should trigger a request to the injected remote player for Black
+    expect(remoteMove).toHaveBeenCalledTimes(1);
+    expect(state().players.b).toBe(remotePlayer);
+  });
 });
