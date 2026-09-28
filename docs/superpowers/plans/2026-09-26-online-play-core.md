@@ -18,6 +18,7 @@
 - `peerConnection.ts` (the real PeerJS I/O boundary) is not unit tested beyond typechecking, matching how `engineClient.ts`/`worker.ts` were handled in phase 1 — verified instead by a real two-client run in the final task.
 - `useOnlineSync` has no dedicated unit test, matching `useGameEffects`/`usePuzzleEffects` — verified live.
 - CSP change goes in the one shared `src/renderer/index.html` (both builds read it).
+- Reactions are a fixed preset list (`REACTIONS`), never freeform text — both the send path (`onlineStore.sendReaction`) and the receive path (`useOnlineSync`) validate against it via `isKnownReaction` before a reaction ever reaches the UI or the wire.
 
 ## Shared interfaces (all tasks rely on these)
 
@@ -39,9 +40,13 @@ export type NetworkMessage =
   | { type: 'move'; move: MoveInput; at: number }
   | { type: 'resign' }
   | { type: 'drawOffer' }
-  | { type: 'drawResponse'; accepted: boolean };
+  | { type: 'drawResponse'; accepted: boolean }
+  | { type: 'reaction'; text: string };
 
 export function randomRoomCode(): string; // 6 chars, A-Z and 0-9
+
+export const REACTIONS: readonly string[]; // emoji + canned phrases — the only valid `reaction.text` values
+export function isKnownReaction(text: string): boolean;
 ```
 
 ```ts
@@ -90,9 +95,23 @@ interface OnlineState {
   hostGame(timeControl: TimeControl): Promise<void>;
   joinGame(roomCode: string): Promise<void>;
   clearDrawOffer(): void;
+  /** No-ops (does not send or show anything) when `text` isn't in REACTIONS, or when there's no connection. */
+  sendReaction(text: string): void;
   leave(): void;
 }
 export const useOnlineStore: UseBoundStore<StoreApi<OnlineState>>;
+```
+
+```ts
+// features/online/reactionStore.ts — the currently-showing reaction bubble, if any. Populated either by
+// onlineStore.sendReaction (your own reaction) or by useOnlineSync (an incoming one from your opponent).
+interface ReactionState {
+  current: { text: string; key: number } | null; // `key` is unique per show() call, even for repeats of
+                                                   // the same text, so the bubble's fade timer always restarts
+  show(text: string): void;
+  clear(): void;
+}
+export const useReactionStore: UseBoundStore<StoreApi<ReactionState>>;
 ```
 
 ---
@@ -104,12 +123,12 @@ export const useOnlineStore: UseBoundStore<StoreApi<OnlineState>>;
 - Create: `src/renderer/features/online/protocol.ts`
 - Test: `src/renderer/features/online/protocol.test.ts`
 
-**Interfaces:** Produces `NetworkMessage`, `randomRoomCode`, and the `PlayerKind`/`GameResult` extensions exactly as in Shared Interfaces.
+**Interfaces:** Produces `NetworkMessage`, `randomRoomCode`, `REACTIONS`, `isKnownReaction`, and the `PlayerKind`/`GameResult` extensions exactly as in Shared Interfaces.
 
 - [ ] **Step 1: Write the failing test**
 ```ts
 import { describe, expect, it } from 'vitest';
-import { randomRoomCode } from './protocol';
+import { randomRoomCode, REACTIONS, isKnownReaction } from './protocol';
 
 describe('randomRoomCode', () => {
   it('is 6 characters of A-Z and 0-9', () => {
@@ -119,6 +138,18 @@ describe('randomRoomCode', () => {
   it('is not the same every time', () => {
     const codes = new Set(Array.from({ length: 20 }, () => randomRoomCode()));
     expect(codes.size).toBeGreaterThan(1);
+  });
+});
+
+describe('isKnownReaction', () => {
+  it('accepts every preset in REACTIONS', () => {
+    for (const r of REACTIONS) expect(isKnownReaction(r)).toBe(true);
+  });
+
+  it('rejects text that is not in the preset list', () => {
+    expect(isKnownReaction('<script>alert(1)</script>')).toBe(false);
+    expect(isKnownReaction('Nice move! ')).toBe(false); // no fuzzy match — trailing space is a different string
+    expect(isKnownReaction('')).toBe(false);
   });
 });
 ```
@@ -160,7 +191,8 @@ export type NetworkMessage =
   | { type: 'move'; move: MoveInput; at: number }
   | { type: 'resign' }
   | { type: 'drawOffer' }
-  | { type: 'drawResponse'; accepted: boolean };
+  | { type: 'drawResponse'; accepted: boolean }
+  | { type: 'reaction'; text: string };
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -169,6 +201,20 @@ export function randomRoomCode(): string {
   let code = '';
   for (let i = 0; i < 6; i++) code += CHARS[Math.floor(Math.random() * CHARS.length)];
   return code;
+}
+
+/**
+ * The only valid `reaction.text` values — emoji + canned chess phrases, never freeform typing. Both the
+ * send path (onlineStore.sendReaction) and the receive path (useOnlineSync) check isKnownReaction before
+ * a reaction reaches the wire or the screen, so a malformed/hostile peer message can't inject arbitrary text.
+ */
+export const REACTIONS: readonly string[] = [
+  '👍', '😮', '😱', '🔥', '🤝', '😂', '♟️',
+  'Nice move!', 'Wow!', 'Blunder!', 'Brilliant!', 'Check!', 'Good game', 'Oops', 'Well played',
+];
+
+export function isKnownReaction(text: string): boolean {
+  return REACTIONS.includes(text);
 }
 ```
 - [ ] **Step 4:** Run tests → PASS. `npm run typecheck` (this will surface every place a `switch`/exhaustive check over `PlayerKind` or `GameResult` needs a new case — there should be none yet, since nothing constructs `{type:'remote'}` or `{kind:'disconnected'}` until later tasks, but fix any that appear).
@@ -285,10 +331,12 @@ git commit -m "feat(online): RemotePlayer implements the existing PlayerControll
 
 **Files:**
 - Create: `src/renderer/features/online/peerConnection.ts`
+- Create: `src/renderer/features/online/reactionStore.ts`
 - Create: `src/renderer/features/online/onlineStore.ts`
+- Test: `src/renderer/features/online/reactionStore.test.ts`
 - Test: `src/renderer/features/online/onlineStore.test.ts`
 
-**Interfaces:** Consumes `RemotePlayer` (Task 2), `NetworkMessage`/`randomRoomCode` (Task 1). Produces `OnlineConnection`, `hostRoom`, `joinRoom`, `useOnlineStore` exactly as in Shared Interfaces.
+**Interfaces:** Consumes `RemotePlayer` (Task 2), `NetworkMessage`/`randomRoomCode`/`REACTIONS`/`isKnownReaction` (Task 1). Produces `OnlineConnection`, `hostRoom`, `joinRoom`, `useOnlineStore`, `useReactionStore` exactly as in Shared Interfaces.
 
 - [ ] **Step 1: Implement `peerConnection.ts` first** (no dedicated unit test — real PeerJS I/O boundary, per Global Constraints; verified in Task 8):
 ```ts
@@ -379,7 +427,59 @@ export function joinRoom(roomCode: string): Promise<OnlineConnection> {
   });
 }
 ```
-- [ ] **Step 2: Write the failing test for `onlineStore`**
+- [ ] **Step 2: Write the failing test for `reactionStore`**
+```ts
+import { describe, expect, it } from 'vitest';
+import { useReactionStore } from './reactionStore';
+
+describe('reactionStore', () => {
+  it('show sets the current reaction', () => {
+    useReactionStore.getState().show('👍');
+    expect(useReactionStore.getState().current?.text).toBe('👍');
+  });
+
+  it('show gives each call a distinct key, even for the same text twice', () => {
+    useReactionStore.getState().show('👍');
+    const firstKey = useReactionStore.getState().current?.key;
+    useReactionStore.getState().show('👍');
+    expect(useReactionStore.getState().current?.key).not.toBe(firstKey);
+  });
+
+  it('clear resets to null', () => {
+    useReactionStore.getState().show('👍');
+    useReactionStore.getState().clear();
+    expect(useReactionStore.getState().current).toBeNull();
+  });
+});
+```
+- [ ] **Step 3:** Run `npx vitest run src/renderer/features/online/reactionStore.test.ts` → FAIL (module missing).
+- [ ] **Step 4: Implement `reactionStore.ts`.**
+```ts
+import { create } from 'zustand';
+
+interface ReactionState {
+  current: { text: string; key: number } | null;
+  show(text: string): void;
+  clear(): void;
+}
+
+// Module-level, not store state: a monotonically increasing id so `show()` always produces a distinct
+// `current` object, even when the text repeats — the UI's fade-out timer keys off this to restart cleanly
+// on a repeat reaction, which a plain `current.text === text` check would miss.
+let nextKey = 0;
+
+export const useReactionStore = create<ReactionState>((set) => ({
+  current: null,
+  show(text) {
+    set({ current: { text, key: nextKey++ } });
+  },
+  clear() {
+    set({ current: null });
+  },
+}));
+```
+- [ ] **Step 5:** Run the test → PASS.
+- [ ] **Step 6: Write the failing test for `onlineStore`**
 ```ts
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { NetworkMessage } from './protocol';
@@ -407,6 +507,11 @@ function fakeConnection() {
     triggerClose() {
       closeHandlers.forEach((h) => h());
     },
+    reset() {
+      this.sent.length = 0;
+      handlers.length = 0;
+      closeHandlers.length = 0;
+    },
   };
 }
 
@@ -422,11 +527,18 @@ vi.mock('@/features/game/gameStore', () => ({
 }));
 
 import { useOnlineStore } from './onlineStore';
+import { useReactionStore } from './reactionStore';
 import { useGameStore } from '@/features/game/gameStore';
 import { UNTIMED } from '@/features/clock/presets';
 
 describe('onlineStore', () => {
-  afterEach(() => useOnlineStore.getState().leave());
+  afterEach(() => {
+    useOnlineStore.getState().leave();
+    useReactionStore.setState({ current: null });
+    conn.reset(); // conn is shared module-level across every test in this file — clear it so `sent`/message
+                  // listeners from one test can never leak into the next (e.g. a reaction sent in an
+                  // earlier test would otherwise still satisfy a later test's `conn.sent.find(...)` check).
+  });
 
   it('hostGame reaches connected with a room code and a local color', async () => {
     await useOnlineStore.getState().hostGame(UNTIMED);
@@ -476,17 +588,37 @@ describe('onlineStore', () => {
     expect(conn.close).toHaveBeenCalled();
     expect(useOnlineStore.getState().status).toBe('idle');
   });
+
+  it('sendReaction sends over the connection and shows it locally', async () => {
+    await useOnlineStore.getState().hostGame(UNTIMED);
+    useOnlineStore.getState().sendReaction('👍');
+    expect(conn.sent.find((m) => m.type === 'reaction')).toEqual({ type: 'reaction', text: '👍' });
+    expect(useReactionStore.getState().current?.text).toBe('👍');
+  });
+
+  it('sendReaction ignores text that is not a known preset', async () => {
+    await useOnlineStore.getState().hostGame(UNTIMED);
+    useOnlineStore.getState().sendReaction('not a real reaction');
+    expect(conn.sent.find((m) => m.type === 'reaction')).toBeUndefined();
+    expect(useReactionStore.getState().current).toBeNull();
+  });
+
+  it('sendReaction does nothing when there is no connection', () => {
+    useOnlineStore.getState().sendReaction('👍');
+    expect(useReactionStore.getState().current).toBeNull();
+  });
 });
 ```
-- [ ] **Step 3:** Run `npx vitest run src/renderer/features/online/onlineStore.test.ts` → FAIL (module missing).
-- [ ] **Step 4: Implement `onlineStore.ts`.**
+- [ ] **Step 7:** Run `npx vitest run src/renderer/features/online/onlineStore.test.ts` → FAIL (module missing).
+- [ ] **Step 8: Implement `onlineStore.ts`.**
 ```ts
 import { create } from 'zustand';
 import { opposite, type Color, type TimeControl } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import { RemotePlayer } from '@/features/game/players';
 import { hostRoom, joinRoom, type OnlineConnection } from './peerConnection';
-import type { NetworkMessage } from './protocol';
+import { isKnownReaction, type NetworkMessage } from './protocol';
+import { useReactionStore } from './reactionStore';
 
 type OnlineStatus = 'idle' | 'hosting' | 'joining' | 'connected' | 'error';
 
@@ -500,6 +632,7 @@ interface OnlineState {
   hostGame(timeControl: TimeControl): Promise<void>;
   joinGame(roomCode: string): Promise<void>;
   clearDrawOffer(): void;
+  sendReaction(text: string): void;
   leave(): void;
 }
 
@@ -572,6 +705,13 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
       set({ incomingDrawOffer: false });
     },
 
+    sendReaction(text) {
+      const { connection } = get();
+      if (!connection || !isKnownReaction(text)) return;
+      connection.send({ type: 'reaction', text });
+      useReactionStore.getState().show(text); // the sender sees their own reaction pop too, not just the receiver
+    },
+
     leave() {
       get().connection?.close();
       set({ status: 'idle', roomCode: null, localColor: null, connection: null, incomingDrawOffer: false, error: null });
@@ -579,11 +719,11 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
   };
 });
 ```
-- [ ] **Step 5:** Run the test → PASS. `npm run typecheck` (this is the point where Task 2's `players.ts` type dependency on `peerConnection.ts` resolves cleanly).
-- [ ] **Step 6:** Commit:
+- [ ] **Step 9:** Run the test → PASS. `npm run typecheck` (this is the point where Task 2's `players.ts` type dependency on `peerConnection.ts` resolves cleanly).
+- [ ] **Step 10:** Commit:
 ```bash
-git add src/renderer/features/online/peerConnection.ts src/renderer/features/online/onlineStore.ts src/renderer/features/online/onlineStore.test.ts
-git commit -m "feat(online): PeerJS connection wrapper and connection-lifecycle store"
+git add src/renderer/features/online/peerConnection.ts src/renderer/features/online/reactionStore.ts src/renderer/features/online/reactionStore.test.ts src/renderer/features/online/onlineStore.ts src/renderer/features/online/onlineStore.test.ts
+git commit -m "feat(online): PeerJS connection wrapper, reaction store, and connection-lifecycle store"
 ```
 
 ### Task 4: gameStore — inject the remote controller
@@ -659,15 +799,17 @@ git commit -m "feat(online): gameStore accepts a pre-built controller for the re
 **Files:**
 - Create: `src/renderer/features/online/useOnlineSync.ts`
 
-**Interfaces:** Consumes `useOnlineStore`, `useGameStore`. No dedicated test (see Global Constraints) — verified in Task 8.
+**Interfaces:** Consumes `useOnlineStore`, `useGameStore`, `isKnownReaction`/`REACTIONS` (Task 1), `useReactionStore` (Task 3). No dedicated test (see Global Constraints) — verified in Task 8.
 
 - [ ] **Step 1: Implement.**
 ```ts
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '@/features/game/gameStore';
 import { useOnlineStore } from './onlineStore';
+import { isKnownReaction } from './protocol';
+import { useReactionStore } from './reactionStore';
 
-/** Relays local moves out over the connection and applies incoming resign/draw messages. Mount once, in GameScreen, only while an online game is connected. */
+/** Relays local moves out over the connection and applies incoming resign/draw/reaction messages. Mount once, in GameScreen, only while an online game is connected. */
 export function useOnlineSync(): void {
   const history = useGameStore((s) => s.history);
   const localColor = useOnlineStore((s) => s.localColor);
@@ -692,6 +834,8 @@ export function useOnlineSync(): void {
         useGameStore.getState().resign(opponentColor!);
       } else if (msg.type === 'drawResponse' && msg.accepted) {
         useGameStore.getState().agreeDraw();
+      } else if (msg.type === 'reaction' && isKnownReaction(msg.text)) {
+        useReactionStore.getState().show(msg.text);
       }
     });
   }, [connection, localColor]);
@@ -895,11 +1039,16 @@ git commit -m "feat(ui): online lobby screen (host/join by room code)"
 **Files:**
 - Modify: `src/renderer/components/ControlBar.tsx`
 - Modify: `src/renderer/components/GameScreen.tsx`
+- Modify: `src/renderer/components/GameScreen.module.css`
 - Modify: `src/renderer/components/NewGameMenu.tsx`
 - Modify: `src/renderer/App.tsx`
 - Modify: `src/renderer/index.html`
+- Create: `src/renderer/components/ReactionPicker.tsx`
+- Create: `src/renderer/components/ReactionPicker.module.css`
+- Create: `src/renderer/components/ReactionBubble.tsx`
+- Create: `src/renderer/components/ReactionBubble.module.css`
 
-**Interfaces:** Consumes `useOnlineStore`, `OnlineLobbyScreen`, `useOnlineSync`.
+**Interfaces:** Consumes `useOnlineStore`, `OnlineLobbyScreen`, `useOnlineSync`, `REACTIONS` (Task 1), `useReactionStore` (Task 3).
 
 - [ ] **Step 1: `ControlBar.tsx`** — add online-awareness. Replace the existing `vsComputer`/draw-button block:
 ```tsx
@@ -959,7 +1108,91 @@ Replace the local-only draw block with one that branches on `isOnline`:
   </>
 )}
 ```
-- [ ] **Step 2: `GameScreen.tsx`** — mount `useOnlineSync` and show a status pill when online:
+Add the reaction button next to the other online-only controls: `{isOnline && <ReactionPicker />}`, with `import { ReactionPicker } from './ReactionPicker';` at the top.
+- [ ] **Step 2: `ReactionPicker.tsx`** — button + popover grid of presets:
+```tsx
+import { useState } from 'react';
+import { REACTIONS } from '@/features/online/protocol';
+import { useOnlineStore } from '@/features/online/onlineStore';
+import styles from './ReactionPicker.module.css';
+
+const COOLDOWN_MS = 1500;
+
+/** A small "React" button (shown only in online games) opening a popover of preset emoji/phrases. */
+export function ReactionPicker() {
+  const sendReaction = useOnlineStore((s) => s.sendReaction);
+  const [open, setOpen] = useState(false);
+  const [cooling, setCooling] = useState(false); // blocks rapid re-sends from a fast double-tap
+
+  const send = (text: string) => {
+    if (cooling) return;
+    sendReaction(text);
+    setOpen(false);
+    setCooling(true);
+    setTimeout(() => setCooling(false), COOLDOWN_MS);
+  };
+
+  return (
+    <div className={styles.wrap}>
+      <button className="btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        😊 React
+      </button>
+      {open && (
+        <div className={styles.popover}>
+          {REACTIONS.map((r) => (
+            <button key={r} className={styles.item} disabled={cooling} onClick={() => send(r)}>
+              {r}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+`src/renderer/components/ReactionPicker.module.css`:
+```css
+.wrap {
+  position: relative;
+}
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 220px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
+}
+
+.item {
+  padding: 8px 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+```
+- [ ] **Step 3: `GameScreen.tsx`** — mount `useOnlineSync` and show a status pill when online:
 ```tsx
 import { useOnlineStore } from '@/features/online/onlineStore';
 import { useOnlineSync } from '@/features/online/useOnlineSync';
@@ -968,7 +1201,69 @@ const isOnline = useOnlineStore((s) => s.status === 'connected');
 useOnlineSync(); // no-ops internally when there's no connection
 ```
 Add a small pill in the sidebar (near the top `ClockPanel`, wherever fits the existing layout without restructuring it): `{isOnline && <p className={styles.onlinePill}>🌐 Online</p>}`, with a matching `.onlinePill` rule added to `GameScreen.module.css` (small, muted-accent text, consistent with the existing `.hintText` style already in that file).
-- [ ] **Step 3: `NewGameMenu.tsx`** — add the entry point, mirroring the existing Puzzles/Openings/Stats buttons:
+Also render `{isOnline && <ReactionBubble />}` once inside `GameScreen`'s returned JSX (anywhere in the tree — it's fixed-positioned, so placement doesn't affect layout), with `import { ReactionBubble } from './ReactionBubble';` at the top.
+- [ ] **Step 4: `ReactionBubble.tsx`** — the floating reaction that appears near the board:
+```tsx
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect } from 'react';
+import { useReactionStore } from '@/features/online/reactionStore';
+import styles from './ReactionBubble.module.css';
+
+const DISPLAY_MS = 2500;
+
+/** Transient bubble for the current reaction (yours or your opponent's). No log — just a pop and a fade. */
+export function ReactionBubble() {
+  const current = useReactionStore((s) => s.current);
+  const clear = useReactionStore((s) => s.clear);
+
+  useEffect(() => {
+    if (!current) return;
+    const id = setTimeout(clear, DISPLAY_MS);
+    return () => clearTimeout(id);
+  }, [current, clear]);
+
+  return (
+    <AnimatePresence>
+      {current && (
+        <motion.div
+          key={current.key}
+          className={styles.bubble}
+          initial={{ opacity: 0, y: 8, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+        >
+          {current.text}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+(The `key={current.key}` is what makes `AnimatePresence` treat a same-text repeat as a new element — replaying the enter/exit animation and restarting the `DISPLAY_MS` timer, exactly matching `reactionStore`'s `key` design from Task 3.)
+
+`src/renderer/components/ReactionBubble.module.css`:
+```css
+.bubble {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(80vw, 320px);
+  padding: 14px 22px;
+  border-radius: 16px;
+  border: 1px solid var(--accent);
+  background: var(--panel);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none; /* never blocks clicking the board underneath */
+  z-index: 40;
+}
+```
+- [ ] **Step 5: `NewGameMenu.tsx`** — add the entry point, mirroring the existing Puzzles/Openings/Stats buttons:
 ```tsx
 import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStore'; // already imported
 // add:
@@ -988,7 +1283,7 @@ const showOnlineLobby = useOnlineLobbyStore((s) => s.show);
   🌐 Play Online
 </button>
 ```
-- [ ] **Step 4: `App.tsx`** — route to the lobby (and, once connected, straight into `GameScreen` the same way the lobby's own "connected" state already hands off — no extra App-level branch needed for the in-progress game itself, since `gameStore.status` becomes `'playing'` exactly like any other game):
+- [ ] **Step 6: `App.tsx`** — route to the lobby (and, once connected, straight into `GameScreen` the same way the lobby's own "connected" state already hands off — no extra App-level branch needed for the in-progress game itself, since `gameStore.status` becomes `'playing'` exactly like any other game):
 ```tsx
 import { useOnlineLobbyStore } from './features/online/onlineLobbyVisibilityStore';
 import { OnlineLobbyScreen } from './components/OnlineLobbyScreen';
@@ -1003,15 +1298,15 @@ if (showingOnlineLobby) return <OnlineLobbyScreen onExit={hideOnlineLobby} />;
 (The `&& gameStatus !== 'playing'` guard lets the lobby's own visibility flag stay `true` harmlessly once the game actually starts — `gameStore.status` flips to `'playing'` inside `onlineStore.hostGame`/`joinGame`'s call to `startGame`, so the plain `inMenu ? <NewGameMenu/> : <GameScreen/>` fallback takes over correctly without needing the lobby to explicitly hide itself at that exact moment. Since `inMenu` is derived from `gameStatus === 'menu'`, replace that line too so `gameStatus` is read once, not twice: `const inMenu = gameStatus === 'menu';`. Still call `useOnlineLobbyStore.getState().hide()` once inside `onlineStore`'s `enterGame` helper from Task 3, for cleanliness, so leaving the game later via `backToMenu` doesn't re-show a stale lobby.)
 
 Revisit Task 3's `enterGame` to add that one line — append to the plan as a note rather than re-deriving the whole function: in `onlineStore.ts`'s `enterGame`, after the existing `set({...})` call, add `useOnlineLobbyStore.getState().hide();` (import it there too).
-- [ ] **Step 5: `index.html`** — CSP change:
+- [ ] **Step 7: `index.html`** — CSP change:
 ```html
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com" />
 ```
-- [ ] **Step 6:** `npm test && npm run typecheck && npm run build && npm run build:web`.
-- [ ] **Step 7:** Commit:
+- [ ] **Step 8:** `npm test && npm run typecheck && npm run build && npm run build:web`.
+- [ ] **Step 9:** Commit:
 ```bash
-git add src/renderer/components/ControlBar.tsx src/renderer/components/GameScreen.tsx src/renderer/components/GameScreen.module.css src/renderer/components/NewGameMenu.tsx src/renderer/App.tsx src/renderer/index.html src/renderer/features/online/onlineLobbyVisibilityStore.ts src/renderer/features/online/onlineStore.ts
-git commit -m "feat(ui): online play wired into controls, game screen, menu, and CSP"
+git add src/renderer/components/ControlBar.tsx src/renderer/components/GameScreen.tsx src/renderer/components/GameScreen.module.css src/renderer/components/NewGameMenu.tsx src/renderer/App.tsx src/renderer/index.html src/renderer/features/online/onlineLobbyVisibilityStore.ts src/renderer/features/online/onlineStore.ts src/renderer/components/ReactionPicker.tsx src/renderer/components/ReactionPicker.module.css src/renderer/components/ReactionBubble.tsx src/renderer/components/ReactionBubble.module.css
+git commit -m "feat(ui): online play wired into controls/menu/CSP, plus reaction picker and bubble"
 ```
 
 ### Task 8: Final live two-client verification
@@ -1024,12 +1319,18 @@ This feature cannot be meaningfully verified with one browser tab talking to its
   - Session A: Play Online → Host a game → pick a time control → note the room code.
   - Session B: Play Online → Join a game → enter the code.
   - Confirm: both land in a live game with correct, opposite colors; playing a move in A appears in B (and vice versa) with the normal animation; the clock in both sessions stays in sync (compare displayed times); Resign in one ends the game with the correct result in both; Offer Draw in one shows the Accept/Decline banner in the other, and Accept ends the game as a draw in both; closing one session's tab/window ends the other's game with a "disconnected" result; "Review game" works afterward exactly like a local game.
+  - Reactions: tapping "😊 React" in A and picking a preset shows the bubble in **both** A and B (not just B); sending the same reaction twice in a row re-pops the bubble and restarts its fade rather than being a no-op; the button is disabled for ~1.5s right after a send (the cooldown); the bubble disappears on its own after a few seconds without blocking any board clicks underneath it.
 - [ ] Fix any defects found, committing as you go.
 
 ---
 
 ## Self-Review
 
-- **Spec coverage:** transport/protocol (Task 1, 3), `RemotePlayer` via the existing seam (Task 2), `gameStore` injection point (Task 4), move/resign/draw relay (Task 5, 7), lobby UI (Task 6), CSP (Task 7), live two-client proof (Task 8) — matches the design doc's scope; reconnection/persistence explicitly deferred, matching the design's non-goals.
-- **Type consistency:** `NetworkMessage`, `OnlineConnection`, `RemotePlayer`, `GameConfig.remote` defined once (Shared Interfaces / their originating tasks) and reused verbatim afterward.
+- **Spec coverage:** transport/protocol (Task 1, 3), `RemotePlayer` via the existing seam (Task 2), `gameStore` injection point (Task 4), move/resign/draw relay (Task 5, 7), lobby UI (Task 6), CSP (Task 7), live two-client proof (Task 8) — matches the design doc's scope; reconnection/persistence explicitly deferred, matching the design's non-goals. Reactions (design doc's "Reactions" section): `REACTIONS`/`isKnownReaction` (Task 1), `reactionStore`/`onlineStore.sendReaction` (Task 3), incoming-reaction relay (Task 5), picker + bubble UI (Task 7), live two-client proof (Task 8) — full coverage.
+- **Type consistency:** `NetworkMessage`, `OnlineConnection`, `RemotePlayer`, `GameConfig.remote` defined once (Shared Interfaces / their originating tasks) and reused verbatim afterward. `REACTIONS`, `isKnownReaction`, `useReactionStore`, and `onlineStore.sendReaction` likewise defined once (Task 1 / Task 3) and consumed identically by Task 5 and Task 7.
 - **Placeholder scan:** none found.
+- **Review Focus (failure modes the spec implies but no task's test previously exercised):**
+  - A malformed/hostile peer sends a `reaction` with arbitrary text → must never reach the screen. Covered: `isKnownReaction` (Task 1) is checked on every receive path (Task 5) before `reactionStore.show` is ever called.
+  - Player taps "React" before a connection exists, or after one has dropped → must not throw or silently half-send. Covered: `onlineStore.sendReaction`'s "no connection" test (Task 3).
+  - Player sends the same reaction twice in a row → the second one must still visibly re-pop, not be treated as a no-op state change. Covered: `reactionStore`'s distinct-`key`-per-call test (Task 3) plus the live check (Task 8).
+  - Rapid double-tap on the reaction button → must not fire two sends back-to-back. Covered: the picker's cooldown (Task 7), exercised live (Task 8) since it's UI-only state with no dedicated unit test (matches this plan's existing UI-task convention).
