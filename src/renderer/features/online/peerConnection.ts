@@ -9,7 +9,7 @@ export interface OnlineConnection {
   close(): void;
 }
 
-const JOIN_TIMEOUT_MS = 10_000;
+export const JOIN_TIMEOUT_MS = 10_000;
 
 function wrap(dc: DataConnection): OnlineConnection {
   return {
@@ -27,14 +27,24 @@ function wrap(dc: DataConnection): OnlineConnection {
   };
 }
 
-/** Creates a room others can join by code. Resolves with the code immediately, and separately once a peer connects. */
-export function hostRoom(): Promise<{ roomCode: string; connected: Promise<OnlineConnection> }> {
+const cancelledError = () => new Error('Cancelled');
+
+/**
+ * Creates a room others can join by code. Resolves with the code immediately, and separately once a peer
+ * connects. `signal` lets the caller give up — e.g. the player left the lobby, or started a different
+ * game — without leaking the broker registration/websocket for a room nobody will ever join.
+ */
+export function hostRoom(signal?: AbortSignal): Promise<{ roomCode: string; connected: Promise<OnlineConnection> }> {
   return new Promise((resolveCode, rejectCode) => {
+    if (signal?.aborted) return rejectCode(cancelledError());
+
     const attempt = (): void => {
       const code = randomRoomCode();
       const peer = new Peer(code);
+      signal?.addEventListener('abort', () => peer.destroy(), { once: true });
 
       peer.on('open', () => {
+        if (signal?.aborted) return; // destroy() above already tore the peer down
         const connected = new Promise<OnlineConnection>((resolveConn, rejectConn) => {
           peer.on('connection', (dc) => {
             dc.on('open', () => resolveConn(wrap(dc)));
@@ -46,6 +56,7 @@ export function hostRoom(): Promise<{ roomCode: string; connected: Promise<Onlin
       });
 
       peer.on('error', (e) => {
+        if (signal?.aborted) return;
         if (e.type === 'unavailable-id') {
           peer.destroy();
           attempt(); // extremely unlikely for a 36^6-space code, but retry rather than fail
@@ -58,14 +69,25 @@ export function hostRoom(): Promise<{ roomCode: string; connected: Promise<Onlin
   });
 }
 
-/** Joins a room by its code. */
-export function joinRoom(roomCode: string): Promise<OnlineConnection> {
+/** Joins a room by its code. `signal` cancels a still-pending attempt (see `hostRoom`). */
+export function joinRoom(roomCode: string, signal?: AbortSignal): Promise<OnlineConnection> {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(cancelledError());
+
     const peer = new Peer();
     const timeout = setTimeout(() => {
       peer.destroy();
       reject(new Error('Could not reach that room — check the code and try again.'));
     }, JOIN_TIMEOUT_MS);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timeout);
+        peer.destroy();
+        reject(cancelledError());
+      },
+      { once: true },
+    );
 
     peer.on('open', () => {
       const dc = peer.connect(roomCode.toUpperCase());

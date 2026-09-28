@@ -7,7 +7,12 @@ import type { Color } from '@/core/types';
 export class Clock {
   private base: Record<Color, number>;
   private active: Color | null = null;
-  private activeSince = 0;
+  private _activeSince: number | null = null;
+
+  /** When the currently-active side's turn started, or null before the clock's first `start()`. */
+  get activeSince(): number | null {
+    return this._activeSince;
+  }
 
   /** initialMs === 0 means untimed. */
   constructor(
@@ -23,13 +28,14 @@ export class Clock {
 
   remaining(color: Color, now: number): number {
     if (this.untimed) return 0;
-    const elapsed = this.active === color ? now - this.activeSince : 0;
+    // active and _activeSince are always set together (both start out null, both set in start()).
+    const elapsed = this.active === color ? now - this._activeSince! : 0;
     return Math.max(0, this.base[color] - elapsed);
   }
 
   start(color: Color, now: number): void {
     this.active = color;
-    this.activeSince = now;
+    this._activeSince = now;
   }
 
   /** Ends the active side's turn (adding increment) and starts the other side's. */

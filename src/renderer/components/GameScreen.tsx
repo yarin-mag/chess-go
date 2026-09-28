@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { phraseFor, reasonFor } from '@/engine/explain';
-import { useGameStore } from '@/features/game/gameStore';
-import { useOnlineStore } from '@/features/online/onlineStore';
+import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
 import { useOnlineSync } from '@/features/online/useOnlineSync';
 import { useGameEffects } from '@/hooks/useGameEffects';
 import { Board } from './Board';
@@ -20,8 +19,9 @@ export function GameScreen() {
   const flipped = useGameStore((s) => s.flipped);
   const gameId = useGameStore((s) => s.gameId);
   const hint = useGameStore((s) => s.hint);
-  const isOnline = useOnlineStore((s) => s.status === 'connected');
-  useOnlineSync(); // no-ops internally when there's no connection
+  const players = useGameStore((s) => s.players);
+  const isOnline = isOnlineGame(players);
+  useOnlineSync(); // no-ops internally unless the current game is actually online
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Collapsed by default so the move list never grows tall enough to cover the board (see MoveList);
   // on the stacked mobile layout, collapsing also lets the board grow (see GameScreen.module.css).

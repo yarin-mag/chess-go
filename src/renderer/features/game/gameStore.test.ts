@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useGameStore, type GameConfig } from './gameStore';
+import { isOnlineGame, useGameStore, type GameConfig } from './gameStore';
 import { UNTIMED } from '@/features/clock/presets';
 
 // Stub the worker-backed engine: always answer with the first legal move.
@@ -213,6 +213,56 @@ describe('gameStore', () => {
     state().resign('w');
     state().handleDisconnect('b');
     expect(state().result).toEqual({ kind: 'resign', winner: 'b' });
+  });
+
+  it('isOnlineGame is true when either seat is remote, false otherwise', () => {
+    expect(isOnlineGame({ w: { kind: 'human' } as never, b: { kind: 'remote' } as never })).toBe(true);
+    expect(isOnlineGame({ w: { kind: 'remote' } as never, b: { kind: 'human' } as never })).toBe(true);
+    expect(isOnlineGame({ w: { kind: 'human' } as never, b: { kind: 'human' } as never })).toBe(false);
+    expect(isOnlineGame({ w: { kind: 'engine' } as never, b: { kind: 'human' } as never })).toBe(false);
+  });
+
+  it("presses the clock using the remote move's own timestamp, not the receiver's Date.now()", async () => {
+    const turnStart = 1_000_000;
+    vi.setSystemTime(turnStart);
+    let resolveMove!: (move: { from: string; to: string }) => void;
+    const remotePlayer = {
+      kind: 'remote' as const,
+      lastAt: turnStart + 3_000, // the mover took 3s
+      requestMove: vi.fn(() => new Promise<{ from: string; to: string }>((resolve) => (resolveMove = resolve))),
+    };
+    state().startGame({
+      white: { type: 'remote' },
+      black: { type: 'human' },
+      timeControl: { name: 'Test', minutes: 5, incrementSec: 0 },
+      remote: { color: 'w', player: remotePlayer },
+    });
+    // Advance real (fake) system time to when the message actually arrives, simulating that those 3s
+    // really passed for both peers — otherwise the receiver's own Date.now() would still read turnStart
+    // and clamp the claimed elapsed time back down to 0, which is correct in that case (next test) but
+    // not what this test is checking.
+    vi.setSystemTime(turnStart + 3_000);
+    resolveMove({ from: 'e2', to: 'e4' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(state().clock.remaining('w', turnStart)).toBe(5 * 60_000 - 3_000);
+  });
+
+  it("clamps a remote timestamp that precedes the turn's own start, so a skewed/malicious peer can't gain time", async () => {
+    const turnStart = 1_000_000;
+    vi.setSystemTime(turnStart);
+    const remotePlayer = {
+      kind: 'remote' as const,
+      lastAt: turnStart - 10_000, // claims to have moved before their own clock even started
+      requestMove: vi.fn(async () => ({ from: 'e2', to: 'e4' })),
+    };
+    state().startGame({
+      white: { type: 'remote' },
+      black: { type: 'human' },
+      timeControl: { name: 'Test', minutes: 5, incrementSec: 0 },
+      remote: { color: 'w', player: remotePlayer },
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(state().clock.remaining('w', turnStart)).toBe(5 * 60_000);
   });
 
   it('does not flip the board when the local online player is white', () => {

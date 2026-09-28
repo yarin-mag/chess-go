@@ -49,4 +49,13 @@ describe('RemotePlayer', () => {
   it('reports kind "remote"', () => {
     expect(new RemotePlayer(fakeConnection()).kind).toBe('remote');
   });
+
+  it('records the sender\'s own timestamp from the resolved move, for the clock to press with', async () => {
+    const conn = fakeConnection();
+    const player = new RemotePlayer(conn);
+    const promise = player.requestMove('fen', new AbortController().signal);
+    conn.emit({ type: 'move', move: { from: 'e2', to: 'e4' }, at: 12345 });
+    await promise;
+    expect(player.lastAt).toBe(12345);
+  });
 });

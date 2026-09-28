@@ -75,6 +75,16 @@ export interface GameState {
 const HUMAN: PlayerKind = { type: 'human' };
 const DEFAULT_CONFIG: GameConfig = { white: HUMAN, black: HUMAN, timeControl: UNTIMED };
 
+/**
+ * The single source of truth for "is the current game online" — per-game (derived from the live
+ * `players` controllers), not process-lifetime (unlike `onlineStore.status`, which can outlive the game
+ * it belonged to). Everything that needs to know — ControlBar, GameScreen, useOnlineSync — reads this
+ * instead of `onlineStore`, so a stale/lingering online connection can never be mistaken for the game
+ * currently on screen.
+ */
+export const isOnlineGame = (players: Record<Color, PlayerController>): boolean =>
+  players.w.kind === 'remote' || players.b.kind === 'remote';
+
 // Only one engine request is ever in flight; a new game / undo / game end aborts it.
 let engineAbort: AbortController | null = null;
 const abortEngine = () => {
@@ -115,7 +125,13 @@ export const useGameStore = create<GameState>((set, get) => {
       .then((move) => {
         if (controller.signal.aborted || get().gameId !== gameId) return;
         set({ engineThinking: false });
-        get().playMove(move);
+        // For a remote opponent, press the clock at *their* own reported move timestamp rather than
+        // however long the network relay took to reach us — both clients then agree on the mover's
+        // elapsed time. Clamped to [turn start, now] so a skewed or hostile peer can't claim a
+        // timestamp before their own turn began (which would hand them time back) or in the future.
+        const remoteAt = player.kind === 'remote' ? (player as unknown as { lastAt: number | null }).lastAt : null;
+        const now = remoteAt === null ? Date.now() : Math.min(Date.now(), Math.max(remoteAt, get().clock.activeSince ?? remoteAt));
+        get().playMove(move, now);
       })
       .catch(() => {
         // Aborted (new game / undo / game over) — nothing to do.

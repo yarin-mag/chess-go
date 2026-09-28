@@ -67,6 +67,10 @@ class EnginePlayer implements PlayerController {
 
 export class RemotePlayer implements PlayerController {
   readonly kind = 'remote' as const;
+  /** The sender's own timestamp on the most recently resolved move — gameStore presses the clock with
+      this instead of the receiver's own Date.now(), so the two clients agree on the mover's elapsed time
+      regardless of network latency. */
+  lastAt: number | null = null;
 
   constructor(private readonly connection: OnlineConnection) {}
 
@@ -76,6 +80,7 @@ export class RemotePlayer implements PlayerController {
       const unsubscribe = this.connection.onMessage((msg) => {
         if (msg.type !== 'move') return;
         unsubscribe();
+        this.lastAt = msg.at;
         resolve(msg.move);
       });
       signal.addEventListener(

@@ -31,6 +31,13 @@ describe('Clock', () => {
     expect(c.flagged(1e9)).toBeNull();
   });
 
+  it('exposes when the active side started, for callers that need to clamp an external timestamp', () => {
+    const c = new Clock(60_000, 0);
+    expect(c.activeSince).toBeNull();
+    c.start('w', 4_000);
+    expect(c.activeSince).toBe(4_000);
+  });
+
   it('stop freezes time', () => {
     const c = new Clock(60_000, 0);
     c.start('w', 0);

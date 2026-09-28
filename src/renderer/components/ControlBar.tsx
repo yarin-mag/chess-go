@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { opposite } from '@/core/types';
-import { useGameStore } from '@/features/game/gameStore';
+import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
 import { useOnlineStore } from '@/features/online/onlineStore';
 import { useReviewStore } from '@/features/review/reviewStore';
 import { ReactionPicker } from './ReactionPicker';
@@ -21,6 +21,8 @@ export function ControlBar({ onOpenSettings }: Props) {
   const onlineConnection = useOnlineStore((s) => s.connection);
   const incomingDrawOffer = useOnlineStore((s) => s.incomingDrawOffer);
   const clearDrawOffer = useOnlineStore((s) => s.clearDrawOffer);
+  const drawOfferSent = useOnlineStore((s) => s.drawOfferSent);
+  const sendDrawOffer = useOnlineStore((s) => s.sendDrawOffer);
   const [armed, setArmed] = useState<Armed>(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export function ControlBar({ onOpenSettings }: Props) {
   }, [armed]);
 
   const playing = status === 'playing';
-  const isOnline = players.w.kind === 'remote' || players.b.kind === 'remote';
+  const isOnline = isOnlineGame(players);
   const vsComputer = !isOnline && (players.w.kind !== 'human' || players.b.kind !== 'human');
   const turn = game.turn();
   const canAskForHelp = playing && players[turn].kind === 'human';
@@ -80,10 +82,10 @@ export function ControlBar({ onOpenSettings }: Props) {
       {isOnline && !incomingDrawOffer && (
         <button
           className={`btn ${armed === 'draw' ? 'btn-danger armed' : ''}`}
-          disabled={!playing}
-          onClick={confirm('draw', () => onlineConnection?.send({ type: 'drawOffer' }))}
+          disabled={!playing || drawOfferSent}
+          onClick={confirm('draw', sendDrawOffer)}
         >
-          {armed === 'draw' ? 'Send offer?' : '🤝 Offer Draw'}
+          {drawOfferSent ? 'Offer sent…' : armed === 'draw' ? 'Send offer?' : '🤝 Offer Draw'}
         </button>
       )}
       {isOnline && incomingDrawOffer && (
@@ -115,7 +117,16 @@ export function ControlBar({ onOpenSettings }: Props) {
           🎓 Review
         </button>
       )}
-      <button className="btn" onClick={backToMenu}>
+      <button
+        className="btn"
+        onClick={() => {
+          // Always tear down any online connection here, not just when isOnline — leaving it live would
+          // outlive this game and get mistaken for an active connection by whatever plays next (a no-op
+          // for a local/computer game, where there's never a connection to close).
+          useOnlineStore.getState().leave();
+          backToMenu();
+        }}
+      >
         ☰ Menu
       </button>
     </div>

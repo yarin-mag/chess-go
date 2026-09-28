@@ -37,6 +37,7 @@ const conn = fakeConnection();
 vi.mock('./peerConnection', () => ({
   hostRoom: vi.fn(async () => ({ roomCode: 'ABC123', connected: Promise.resolve(conn) })),
   joinRoom: vi.fn(async () => conn),
+  JOIN_TIMEOUT_MS: 10_000,
 }));
 
 vi.mock('@/features/game/gameStore', () => ({
@@ -44,6 +45,7 @@ vi.mock('@/features/game/gameStore', () => ({
 }));
 
 import { useOnlineStore } from './onlineStore';
+import { hostRoom, joinRoom, JOIN_TIMEOUT_MS } from './peerConnection';
 import { useReactionStore } from './reactionStore';
 import { useGameStore } from '@/features/game/gameStore';
 import { UNTIMED } from '@/features/clock/presets';
@@ -127,5 +129,75 @@ describe('onlineStore', () => {
   it('sendReaction does nothing when there is no connection', () => {
     useOnlineStore.getState().sendReaction('👍');
     expect(useReactionStore.getState().current).toBeNull();
+  });
+
+  it('sendDrawOffer sends the offer and marks it pending', async () => {
+    await useOnlineStore.getState().hostGame(UNTIMED);
+    useOnlineStore.getState().sendDrawOffer();
+    expect(conn.sent.find((m) => m.type === 'drawOffer')).toBeDefined();
+    expect(useOnlineStore.getState().drawOfferSent).toBe(true);
+  });
+
+  it('clears the pending offer and shows a decline notice when the opponent declines', async () => {
+    await useOnlineStore.getState().hostGame(UNTIMED);
+    useOnlineStore.getState().sendDrawOffer();
+    conn.emit({ type: 'drawResponse', accepted: false });
+    expect(useOnlineStore.getState().drawOfferSent).toBe(false);
+    expect(useReactionStore.getState().current?.text).toBe('Draw declined');
+  });
+
+  it('clears the pending offer when the opponent accepts', async () => {
+    await useOnlineStore.getState().hostGame(UNTIMED);
+    useOnlineStore.getState().sendDrawOffer();
+    conn.emit({ type: 'drawResponse', accepted: true });
+    expect(useOnlineStore.getState().drawOfferSent).toBe(false);
+  });
+
+  it('leave() while hosting aborts the attempt, so a late-resolving connection never enters a game', async () => {
+    let resolveConnected!: (c: typeof conn) => void;
+    vi.mocked(hostRoom).mockImplementationOnce(async () => ({
+      roomCode: 'LATE01',
+      connected: new Promise((resolve) => {
+        resolveConnected = resolve;
+      }),
+    }));
+    const promise = useOnlineStore.getState().hostGame(UNTIMED);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(useOnlineStore.getState().status).toBe('hosting');
+    useOnlineStore.getState().leave();
+    resolveConnected(conn);
+    await promise;
+    expect(useOnlineStore.getState().status).toBe('idle');
+  });
+
+  it('leave() while joining aborts the attempt', async () => {
+    let resolveConn!: (c: typeof conn) => void;
+    vi.mocked(joinRoom).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveConn = resolve;
+        }),
+    );
+    const promise = useOnlineStore.getState().joinGame('ABC123');
+    await Promise.resolve();
+    expect(useOnlineStore.getState().status).toBe('joining');
+    useOnlineStore.getState().leave();
+    resolveConn(conn);
+    await promise;
+    expect(useOnlineStore.getState().status).toBe('idle');
+  });
+
+  it('joinGame times out with a friendly error if init never arrives', async () => {
+    vi.useFakeTimers();
+    try {
+      const promise = useOnlineStore.getState().joinGame('ABC123'); // conn never emits 'init'
+      await vi.advanceTimersByTimeAsync(JOIN_TIMEOUT_MS);
+      await promise;
+      expect(useOnlineStore.getState().status).toBe('error');
+      expect(useOnlineStore.getState().error).toMatch(/check the code/i);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
