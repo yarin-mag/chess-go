@@ -37,7 +37,8 @@ export type NetworkMessage =
   | { type: 'move'; move: MoveInput; at: number } // `at` = sender's Date.now()
   | { type: 'resign' }
   | { type: 'drawOffer' }
-  | { type: 'drawResponse'; accepted: boolean };
+  | { type: 'drawResponse'; accepted: boolean }
+  | { type: 'reaction'; text: string }; // one of REACTIONS below — never freeform
 ```
 
 The host decides colors (coin flip) and time control, and is the only side that sends `init`, immediately
@@ -112,6 +113,32 @@ its existing `startReview` call).
 Once the game ends (any reason, including `disconnected`), "Review game" already works completely
 unchanged — it only ever needed `{ startFen, history }`.
 
+## Reactions
+
+A fixed set of emoji + canned chess phrases either side can send during an online game — not freeform
+chat (nothing to type, nothing to moderate).
+
+```ts
+// features/online/protocol.ts
+export const REACTIONS: readonly string[] = [
+  '👍', '😮', '😱', '🔥', '🤝', '😂', '♟️',
+  'Nice move!', 'Wow!', 'Blunder!', 'Brilliant!', 'Check!', 'Good game', 'Oops', 'Well played',
+];
+```
+
+- A small "😊" button in `ControlBar` (shown only when `isOnline`, alongside the existing draw/resign
+  controls) opens a popover grid of `REACTIONS`. Tapping one calls `connection.send({ type: 'reaction',
+  text })` **and** shows the same bubble locally immediately — the sender sees their own reaction pop too,
+  not just the receiver.
+- `useOnlineSync` (Task 5) also listens for `{ type: 'reaction' }`; on receipt, it checks `REACTIONS.includes(msg.text)`
+  and ignores anything else (the wire is only trusted as far as "one of the known presets" — a malformed
+  or hostile peer message can't inject arbitrary text onto the other client's screen).
+- Display: a transient bubble floating near the board (`ReactionBubble.tsx`), auto-fading after ~2.5s. No
+  persistent log — this is a lightweight reaction, not a chat thread. A new reaction while one is already
+  showing simply replaces it (no queue).
+- Local-only concern, not part of `NetworkMessage`'s trust boundary: a short client-side cooldown (~1.5s)
+  on the send button after each tap, so a fast double-tap can't spam two bubbles in a row.
+
 ## CSP
 
 `index.html`'s CSP currently has no `connect-src` override (falls back to `default-src 'self'`), which
@@ -128,5 +155,5 @@ blocks the WebSocket PeerJS uses to reach its broker. Add:
 
 ## Non-goals (this sub-project)
 
-Reconnection after a drop, surviving the app being closed, spectating, in-game chat, matchmaking with
-strangers (invite-code only, one game at a time).
+Reconnection after a drop, surviving the app being closed, spectating, freeform text chat (only the fixed
+`REACTIONS` set — see Reactions above), matchmaking with strangers (invite-code only, one game at a time).
