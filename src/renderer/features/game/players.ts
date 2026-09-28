@@ -65,5 +65,7 @@ class EnginePlayer implements PlayerController {
 }
 
 export function createPlayer(kind: PlayerKind): PlayerController {
-  return kind.type === 'human' ? new HumanPlayer() : new EnginePlayer(kind.level);
+  if (kind.type === 'human') return new HumanPlayer();
+  if (kind.type === 'engine') return new EnginePlayer(kind.level);
+  throw new Error('A "remote" PlayerKind must be supplied via GameConfig.remote, not createPlayer()');
 }

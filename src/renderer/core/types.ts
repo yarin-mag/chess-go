@@ -32,10 +32,11 @@ export type GameResult =
   | { kind: 'checkmate'; winner: Color }
   | { kind: 'timeout'; winner: Color }
   | { kind: 'resign'; winner: Color }
-  | { kind: 'draw'; reason: DrawReason };
+  | { kind: 'draw'; reason: DrawReason }
+  | { kind: 'disconnected'; winner: Color };
 
 export type Level = 'easy' | 'medium' | 'hard';
-export type PlayerKind = { type: 'human' } | { type: 'engine'; level: Level };
+export type PlayerKind = { type: 'human' } | { type: 'engine'; level: Level } | { type: 'remote' };
 
 /** minutes === 0 means untimed. */
 export interface TimeControl {

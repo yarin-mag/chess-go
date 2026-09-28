@@ -23,6 +23,8 @@ const DRAW_REASONS = {
 
 export function describeResult(result: GameResult): { title: string; detail: string } {
   if (result.kind === 'draw') return { title: 'Draw', detail: DRAW_REASONS[result.reason] };
-  const reason = { checkmate: 'by checkmate', timeout: 'on time', resign: 'by resignation' }[result.kind];
+  const reason = { checkmate: 'by checkmate', timeout: 'on time', resign: 'by resignation', disconnected: 'by disconnection' }[
+    result.kind
+  ];
   return { title: `${colorName(result.winner)} wins`, detail: `Victory ${reason}` };
 }
