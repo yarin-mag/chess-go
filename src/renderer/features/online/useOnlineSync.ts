@@ -34,4 +34,12 @@ export function useOnlineSync(): void {
       }
     });
   }, [connection, localColor]);
+
+  useEffect(() => {
+    if (!connection || !localColor) return;
+    // The side still connected didn't do anything wrong — they win by the opponent's disconnection.
+    return connection.onClose(() => {
+      useGameStore.getState().handleDisconnect(localColor);
+    });
+  }, [connection, localColor]);
 }

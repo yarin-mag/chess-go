@@ -201,6 +201,20 @@ describe('gameStore', () => {
     expect(state().flipped).toBe(true);
   });
 
+  it('handleDisconnect ends the game with the given winner, if still playing', () => {
+    state().startGame(localConfig());
+    state().handleDisconnect('w');
+    expect(state().status).toBe('over');
+    expect(state().result).toEqual({ kind: 'disconnected', winner: 'w' });
+  });
+
+  it('handleDisconnect does nothing once the game has already ended', () => {
+    state().startGame(localConfig());
+    state().resign('w');
+    state().handleDisconnect('b');
+    expect(state().result).toEqual({ kind: 'resign', winner: 'b' });
+  });
+
   it('does not flip the board when the local online player is white', () => {
     const remotePlayer = { kind: 'remote' as const, requestMove: vi.fn() };
     state().startGame({

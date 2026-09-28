@@ -64,6 +64,8 @@ export interface GameState {
   undo(now?: number): void;
   resign(color: Color): void;
   agreeDraw(): void;
+  /** Called when the online connection drops mid-game — `winner` is the side still connected. */
+  handleDisconnect(winner: Color): void;
   tickClock(now: number): void;
   setFlipped(flipped: boolean): void;
   requestHint(): Promise<void>;
@@ -254,6 +256,10 @@ export const useGameStore = create<GameState>((set, get) => {
 
     agreeDraw() {
       if (get().status === 'playing') finish({ kind: 'draw', reason: 'agreement' }, Date.now());
+    },
+
+    handleDisconnect(winner) {
+      if (get().status === 'playing') finish({ kind: 'disconnected', winner }, Date.now());
     },
 
     tickClock(now) {
