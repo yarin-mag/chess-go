@@ -25,7 +25,11 @@
 @media (max-width: 820px) {
   :root {
     --sidebar-width: 100%;
-    --board-size: min(calc(100vw - 32px), 62vh);
+    /* The board is square, so on phones it's the width that limits how big it can be, not the vh figure —
+       the viewport is always much taller than it is wide. A tight gutter here is what actually grows it.
+       (GameScreen overrides this further still — its move list collapses behind a toggle, which affords
+       an even narrower gutter than Review/Puzzle can safely use.) */
+    --board-size: min(calc(100vw - 32px), 82vh);
   }
 
   body {
