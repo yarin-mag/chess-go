@@ -159,8 +159,12 @@ export const useGameStore = create<GameState>((set, get) => {
         lastMove: null,
         result: null,
         engineThinking: false,
-        // Show the board from the human's side when they play Black against the computer.
-        flipped: config.white.type === 'engine' && config.black.type === 'human',
+        // Show the board from the human's side when they play Black — against the computer, or (checked
+        // first, since config.white/black aren't 'human'/'engine' for the online seat) online, where the
+        // local color is whichever one config.remote *isn't*.
+        flipped: config.remote
+          ? config.remote.color === 'w'
+          : config.white.type === 'engine' && config.black.type === 'human',
         hint: null,
         hintLoading: false,
         ...noSelection,

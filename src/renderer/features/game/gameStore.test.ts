@@ -187,4 +187,28 @@ describe('gameStore', () => {
     expect(remoteMove).toHaveBeenCalledTimes(1);
     expect(state().players.b).toBe(remotePlayer);
   });
+
+  it('flips the board when the local online player is black', () => {
+    // White is the remote side here, and it's White's turn at game start, so startGame immediately asks
+    // this controller for a move — it must return a promise (a never-resolving one is fine for this test).
+    const remotePlayer = { kind: 'remote' as const, requestMove: vi.fn(() => new Promise<never>(() => {})) };
+    state().startGame({
+      white: { type: 'remote' },
+      black: { type: 'human' },
+      timeControl: UNTIMED,
+      remote: { color: 'w', player: remotePlayer }, // remote is white → the local human is black
+    });
+    expect(state().flipped).toBe(true);
+  });
+
+  it('does not flip the board when the local online player is white', () => {
+    const remotePlayer = { kind: 'remote' as const, requestMove: vi.fn() };
+    state().startGame({
+      white: { type: 'human' },
+      black: { type: 'remote' },
+      timeControl: UNTIMED,
+      remote: { color: 'b', player: remotePlayer }, // remote is black → the local human is white
+    });
+    expect(state().flipped).toBe(false);
+  });
 });
