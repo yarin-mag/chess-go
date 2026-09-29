@@ -1,0 +1,46 @@
+.popover {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: var(--text);
+}
+
+.loading {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.phrase {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.reason {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
