@@ -1,30 +1,35 @@
+import { t } from '@/i18n';
 import type { Color, GameResult, Level } from '@/core/types';
 import type { GameConfig } from './gameStore';
 
-export const colorName = (c: Color): string => (c === 'w' ? 'White' : 'Black');
+export const colorName = (c: Color): string => t(`common:${c === 'w' ? 'white' : 'black'}`);
 
-export const levelName = (level: Level): string => level[0].toUpperCase() + level.slice(1);
+export const levelName = (level: Level): string => t(`common:${level}`);
 
 /** Name shown next to a side's clock. */
 export function playerLabel(config: GameConfig, color: Color): string {
   const kind = color === 'w' ? config.white : config.black;
-  if (kind.type === 'engine') return `Computer · ${levelName(kind.level)}`;
+  if (kind.type === 'engine') return t('game:playerComputer', { level: levelName(kind.level) });
   const vsComputer = config.white.type === 'engine' || config.black.type === 'engine';
-  return vsComputer ? 'You' : colorName(color);
+  return vsComputer ? t('game:playerYou') : colorName(color);
 }
 
-const DRAW_REASONS = {
-  stalemate: 'Stalemate',
-  insufficient: 'Insufficient material',
-  threefold: 'Threefold repetition',
-  fifty: 'Fifty-move rule',
-  agreement: 'Draw by agreement',
+const DRAW_REASON_KEY = {
+  stalemate: 'drawStalemate',
+  insufficient: 'drawInsufficient',
+  threefold: 'drawThreefold',
+  fifty: 'drawFifty',
+  agreement: 'drawAgreement',
+} as const;
+
+const VICTORY_KEY = {
+  checkmate: 'victoryCheckmate',
+  timeout: 'victoryTimeout',
+  resign: 'victoryResign',
+  disconnected: 'victoryDisconnected',
 } as const;
 
 export function describeResult(result: GameResult): { title: string; detail: string } {
-  if (result.kind === 'draw') return { title: 'Draw', detail: DRAW_REASONS[result.reason] };
-  const reason = { checkmate: 'by checkmate', timeout: 'on time', resign: 'by resignation', disconnected: 'by disconnection' }[
-    result.kind
-  ];
-  return { title: `${colorName(result.winner)} wins`, detail: `Victory ${reason}` };
+  if (result.kind === 'draw') return { title: t('game:resultDraw'), detail: t(`game:${DRAW_REASON_KEY[result.reason]}`) };
+  return { title: t('game:resultWinner', { color: colorName(result.winner) }), detail: t(`game:${VICTORY_KEY[result.kind]}`) };
 }

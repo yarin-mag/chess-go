@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { opposite } from '@/core/types';
 import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
 import { useOnlineStore } from '@/features/online/onlineStore';
@@ -15,6 +16,7 @@ interface Props {
 
 /** In-game actions. Destructive ones (resign / draw) need a second click to confirm. */
 export function ControlBar({ onOpenSettings }: Props) {
+  const { t } = useTranslation();
   const { status, game, players, history, config, flipped, hintLoading, undo, setFlipped, resign, agreeDraw, requestHint, backToMenu } =
     useGameStore();
   const startReview = useReviewStore((s) => s.start);
@@ -49,16 +51,16 @@ export function ControlBar({ onOpenSettings }: Props) {
   return (
     <div className={styles.bar}>
       <button className="btn" disabled={!playing || history.length === 0 || isOnline} onClick={() => undo()}>
-        ↶ Undo
+        {t('common:undo')}
       </button>
       <button className="btn" onClick={() => setFlipped(!flipped)}>
-        ⇅ Flip
+        {t('common:flip')}
       </button>
       <button className="btn" disabled={!canAskForHelp || hintLoading} onClick={() => void requestHint()}>
-        {hintLoading ? '…' : '💡 Get Help'}
+        {hintLoading ? '…' : t('game:getHelp')}
       </button>
       <button className="btn" onClick={onOpenSettings}>
-        ⚙ Settings
+        {t('common:settings')}
       </button>
       <button
         className={`btn btn-danger ${armed === 'resign' ? 'armed' : ''}`}
@@ -68,7 +70,7 @@ export function ControlBar({ onOpenSettings }: Props) {
           if (isOnline) onlineConnection?.send({ type: 'resign' });
         })}
       >
-        {armed === 'resign' ? 'Sure?' : '⚑ Resign'}
+        {armed === 'resign' ? t('game:resignConfirm') : t('game:resign')}
       </button>
       {!vsComputer && !isOnline && (
         <button
@@ -76,7 +78,7 @@ export function ControlBar({ onOpenSettings }: Props) {
           disabled={!playing}
           onClick={confirm('draw', agreeDraw)}
         >
-          {armed === 'draw' ? 'Agree?' : '½ Draw'}
+          {armed === 'draw' ? t('game:drawLocalConfirm') : t('game:drawLocal')}
         </button>
       )}
       {isOnline && !incomingDrawOffer && (
@@ -85,7 +87,7 @@ export function ControlBar({ onOpenSettings }: Props) {
           disabled={!playing || drawOfferSent}
           onClick={confirm('draw', sendDrawOffer)}
         >
-          {drawOfferSent ? 'Offer sent…' : armed === 'draw' ? 'Send offer?' : '🤝 Offer Draw'}
+          {drawOfferSent ? t('game:offerSent') : armed === 'draw' ? t('game:offerDrawConfirm') : t('game:offerDraw')}
         </button>
       )}
       {isOnline && incomingDrawOffer && (
@@ -98,7 +100,7 @@ export function ControlBar({ onOpenSettings }: Props) {
               agreeDraw();
             }}
           >
-            Accept draw
+            {t('game:acceptDraw')}
           </button>
           <button
             className="btn"
@@ -107,14 +109,14 @@ export function ControlBar({ onOpenSettings }: Props) {
               clearDrawOffer();
             }}
           >
-            Decline
+            {t('game:decline')}
           </button>
         </>
       )}
       {isOnline && <ReactionPicker />}
       {status === 'over' && (
         <button className="btn btn-primary" onClick={() => startReview(config, history)}>
-          🎓 Review
+          {t('game:review')}
         </button>
       )}
       <button
@@ -127,7 +129,7 @@ export function ControlBar({ onOpenSettings }: Props) {
           backToMenu();
         }}
       >
-        ☰ Menu
+        {t('common:menu')}
       </button>
     </div>
   );

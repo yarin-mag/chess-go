@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '@/features/game/gameStore';
 import type { PromotionPiece } from '@/core/types';
 import { pieceImage } from './pieceImages';
@@ -8,6 +9,7 @@ const CHOICES: PromotionPiece[] = ['q', 'r', 'b', 'n'];
 
 /** Lets the player pick the piece a pawn promotes to. Click outside (or Esc) to cancel. */
 export function PromotionDialog() {
+  const { t } = useTranslation();
   const pending = useGameStore((s) => s.pendingPromotion);
   const color = useGameStore((s) => s.game.turn());
   const choosePromotion = useGameStore((s) => s.choosePromotion);
@@ -24,7 +26,7 @@ export function PromotionDialog() {
           onClick={cancelPromotion}
           onKeyDown={(e) => e.key === 'Escape' && cancelPromotion()}
           role="dialog"
-          aria-label="Choose promotion piece"
+          aria-label={t('common:choosePromotionPiece')}
         >
           <motion.div
             className={styles.card}

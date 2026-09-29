@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Color } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import { playerLabel } from '@/features/game/labels';
@@ -10,6 +11,7 @@ const LOW_TIME_MS = 10_000;
 
 /** One player's card: name, captured material and clock. */
 export function ClockPanel({ color }: { color: Color }) {
+  const { t } = useTranslation();
   const config = useGameStore((s) => s.config);
   const untimed = useGameStore((s) => s.clock.untimed);
   const status = useGameStore((s) => s.status);
@@ -27,7 +29,7 @@ export function ClockPanel({ color }: { color: Color }) {
         <span className={styles.name}>
           <span className={`${styles.dot} ${color === 'w' ? styles.white : styles.black}`} />
           {playerLabel(config, color)}
-          {active && thinking && <span className={styles.thinking}>thinking…</span>}
+          {active && thinking && <span className={styles.thinking}>{t('game:thinking')}</span>}
         </span>
         <CapturedPieces color={color} />
       </div>

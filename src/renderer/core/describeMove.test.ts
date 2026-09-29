@@ -46,6 +46,15 @@ describe('describeMove', () => {
     const mate = new ChessGame('6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1').move({ from: 'a1', to: 'a8' })!;
     expect(describeMove(mate)).toContain('This delivers checkmate.');
   });
+
+  it('describes the same move in Spanish once the locale changes', async () => {
+    const { default: i18n } = await import('@/i18n');
+    await i18n.changeLanguage('es');
+    const g = new ChessGame();
+    const m = g.move({ from: 'e2', to: 'e4' })!;
+    expect(describeMove(m)).toBe('El peón en e2 se mueve a e4.');
+    await i18n.changeLanguage('en');
+  });
 });
 
 describe('describePotentialMove', () => {

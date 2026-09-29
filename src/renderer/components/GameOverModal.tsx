@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
 import { describeResult } from '@/features/game/labels';
 import { useOnlineStore } from '@/features/online/onlineStore';
@@ -8,6 +9,7 @@ import styles from './GameOverModal.module.css';
 
 /** Result announcement with rematch / new game / review options. Remount (via key) for each game. */
 export function GameOverModal() {
+  const { t } = useTranslation();
   const { status, result, config, history, players, startGame, backToMenu } = useGameStore();
   const startReview = useReviewStore((s) => s.start);
   const [dismissed, setDismissed] = useState(false);
@@ -28,11 +30,11 @@ export function GameOverModal() {
           <div className={styles.actions}>
             {!online && (
               <button className="btn btn-primary" onClick={() => startGame(config)}>
-                Rematch
+                {t('game:rematch')}
               </button>
             )}
             <button className="btn" onClick={() => startReview(config, history)}>
-              Review game
+              {t('game:reviewGame')}
             </button>
             <button
               className="btn"
@@ -42,10 +44,10 @@ export function GameOverModal() {
                 backToMenu();
               }}
             >
-              New game
+              {t('game:newGame')}
             </button>
             <button className="btn" onClick={close}>
-              View board
+              {t('game:viewBoard')}
             </button>
           </div>
         </div>

@@ -1,34 +1,28 @@
+import { t } from '@/i18n';
 import { ChessGame } from './chessGame';
 import type { MoveInput, MoveRecord, PieceType } from './types';
 
-/** Plain-English names for the piece letters used in algebraic notation and internal move records. */
-export const PIECE_NAMES: Record<PieceType, string> = {
-  p: 'pawn',
-  n: 'knight',
-  b: 'bishop',
-  r: 'rook',
-  q: 'queen',
-  k: 'king',
-};
+const PIECE_KEY: Record<PieceType, string> = { p: 'pieceP', n: 'pieceN', b: 'pieceB', r: 'pieceR', q: 'pieceQ', k: 'pieceK' };
+const pieceName = (piece: PieceType): string => t(`game:${PIECE_KEY[piece]}`);
 
 /** Turns a played move into a beginner-friendly sentence describing what actually happened on the board. */
 export function describeMove(move: MoveRecord): string {
-  if (move.flags.includes('k')) return 'Castles kingside (king and rook swap sides toward the h-file).';
-  if (move.flags.includes('q')) return 'Castles queenside (king and rook swap sides toward the a-file).';
+  if (move.flags.includes('k')) return t('game:castleKingside');
+  if (move.flags.includes('q')) return t('game:castleQueenside');
 
-  const piece = PIECE_NAMES[move.piece];
+  const piece = pieceName(move.piece);
   let text: string;
   if (move.flags.includes('e')) {
-    text = `The ${piece} on ${move.from} captures en passant, landing on ${move.to}.`;
+    text = t('game:moveEnPassant', { piece, from: move.from, to: move.to });
   } else if (move.captured) {
-    text = `The ${piece} on ${move.from} captures the ${PIECE_NAMES[move.captured]} on ${move.to}.`;
+    text = t('game:moveCaptures', { piece, from: move.from, captured: pieceName(move.captured), to: move.to });
   } else {
-    text = `The ${piece} on ${move.from} moves to ${move.to}.`;
+    text = t('game:moveSimple', { piece, from: move.from, to: move.to });
   }
 
-  if (move.promotion) text += ` The pawn then promotes to a ${PIECE_NAMES[move.promotion]}.`;
-  if (move.san.endsWith('#')) text += ' This delivers checkmate.';
-  else if (move.san.endsWith('+')) text += ' This puts the opponent in check.';
+  if (move.promotion) text += t('game:movePromotes', { piece: pieceName(move.promotion) });
+  if (move.san.endsWith('#')) text += t('game:moveCheckmate');
+  else if (move.san.endsWith('+')) text += t('game:moveCheckSuffix');
 
   return text;
 }
@@ -40,5 +34,5 @@ export function describeMove(move: MoveRecord): string {
 export function describePotentialMove(fenBefore: string, move: MoveInput): string {
   const game = new ChessGame(fenBefore);
   const record = game.move(move);
-  return record ? describeMove(record) : `${move.from} to ${move.to}.`;
+  return record ? describeMove(record) : t('game:potentialMoveFallback', { from: move.from, to: move.to });
 }

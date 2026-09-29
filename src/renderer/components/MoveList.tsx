@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { MoveRecord } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import styles from './MoveList.module.css';
@@ -19,15 +21,17 @@ interface Props {
 }
 
 /** "14. Qd2" for White's move, "14...Qd2" for Black's — the standard way to name a lone move. */
-function lastMoveLabel(history: MoveRecord[]): string {
-  if (history.length === 0) return 'No moves yet';
+function lastMoveLabel(history: MoveRecord[], t: TFunction): string {
+  if (history.length === 0) return t('game:noMovesYet');
   const ply = history.length - 1;
   const number = Math.floor(ply / 2) + 1;
-  return ply % 2 === 0 ? `${number}. ${history[ply].san}` : `${number}...${history[ply].san}`;
+  const san = history[ply].san;
+  return ply % 2 === 0 ? t('game:movePairWhite', { number, san }) : t('game:movePairBlack', { number, san });
 }
 
 /** Move history in SAN, two plies per row; scrolls to the latest move. */
 export function MoveList({ onSelectPly, activePly, history: historyOverride, collapsed, onToggleCollapsed }: Props = {}) {
+  const { t } = useTranslation();
   const liveHistory = useGameStore((s) => s.history);
   const history = historyOverride ?? liveHistory;
   const listRef = useRef<HTMLDivElement>(null);
@@ -51,7 +55,7 @@ export function MoveList({ onSelectPly, activePly, history: historyOverride, col
 
   const list = showList && (
     <div ref={listRef} className={styles.list}>
-      {rows.length === 0 && <p className={styles.empty}>Moves will appear here</p>}
+      {rows.length === 0 && <p className={styles.empty}>{t('game:movesEmpty')}</p>}
       {rows.map((r) => {
         const whitePly = (r.number - 1) * 2;
         const blackPly = whitePly + 1;
@@ -81,8 +85,11 @@ export function MoveList({ onSelectPly, activePly, history: historyOverride, col
   return (
     <div className={styles.wrap}>
       <button className={styles.toggle} onClick={onToggleCollapsed} aria-expanded={!collapsed}>
-        <span>Moves{history.length > 0 && ` (${history.length})`}</span>
-        <span className={styles.toggleMove}>{lastMoveLabel(history)}</span>
+        <span>
+          {t('game:movesLabel')}
+          {history.length > 0 && ` (${history.length})`}
+        </span>
+        <span className={styles.toggleMove}>{lastMoveLabel(history, t)}</span>
         <span className={styles.chevron}>{collapsed ? '▾' : '▴'}</span>
       </button>
       {list}

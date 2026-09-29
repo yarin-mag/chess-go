@@ -3,12 +3,15 @@ import { initReactI18next } from 'react-i18next';
 import commonEn from '@/locales/en/common.json';
 import commonHe from '@/locales/he/common.json';
 import commonEs from '@/locales/es/common.json';
+import gameEn from '@/locales/en/game.json';
+import gameHe from '@/locales/he/game.json';
+import gameEs from '@/locales/es/game.json';
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: commonEn },
-    he: { common: commonHe },
-    es: { common: commonEs },
+    en: { common: commonEn, game: gameEn },
+    he: { common: commonHe, game: gameHe },
+    es: { common: commonEs, game: gameEs },
   },
   lng: 'en',
   fallbackLng: 'en',
