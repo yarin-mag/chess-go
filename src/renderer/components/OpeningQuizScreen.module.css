@@ -1,0 +1,29 @@
+.screen {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.feedback {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel-raised);
+  color: var(--text);
+  font-size: 14px;
+  min-height: 20px;
+}
+
+.progress {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}

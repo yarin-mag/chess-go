@@ -6,7 +6,9 @@ import { UNTIMED } from '@/features/clock/presets';
 import { useGameStore } from '@/features/game/gameStore';
 import { CURATED_OPENINGS, type CuratedOpening } from '@/features/openings/curatedOpenings';
 import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStore';
+import { useOpeningQuizStore } from '@/features/openings/openingQuizStore';
 import { useReviewStore } from '@/features/review/reviewStore';
+import { OpeningQuizScreen } from './OpeningQuizScreen';
 import { Segmented } from './ui/Segmented';
 import styles from './OpeningExplorerScreen.module.css';
 
@@ -21,6 +23,8 @@ export function OpeningExplorerScreen({ onExit }: Props) {
   const startReview = useReviewStore((s) => s.start);
   const startGame = useGameStore((s) => s.startGame);
   const hideExplorer = useOpeningExplorerStore((s) => s.hide);
+  const quizStatus = useOpeningQuizStore((s) => s.status);
+  const startQuiz = useOpeningQuizStore((s) => s.start);
   const [side, setSide] = useState<Color>('w');
   const [level, setLevel] = useState<Level>('medium');
 
@@ -42,6 +46,10 @@ export function OpeningExplorerScreen({ onExit }: Props) {
     });
     hideExplorer();
   };
+
+  if (quizStatus !== 'idle') {
+    return <OpeningQuizScreen onExit={() => {}} />;
+  }
 
   return (
     <div className={styles.screen}>
@@ -86,6 +94,9 @@ export function OpeningExplorerScreen({ onExit }: Props) {
               <div className={styles.rowActions}>
                 <button className="btn" onClick={() => watch(opening)}>
                   {t('puzzles:watch')}
+                </button>
+                <button className="btn" onClick={() => startQuiz(opening, side)}>
+                  {t('puzzles:quiz')}
                 </button>
                 <button className="btn btn-primary" onClick={() => practice(opening)}>
                   {t('puzzles:practice')}
