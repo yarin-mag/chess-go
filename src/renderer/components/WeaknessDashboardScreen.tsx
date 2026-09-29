@@ -1,29 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { useGameHistoryStore } from '@/features/history/gameHistoryStore';
-import { biggestWeakness, phaseBreakdown, tagFrequency, tierCounts, type GamePhase } from '@/features/history/weaknessStats';
+import { biggestWeakness, phaseBreakdown, tagFrequency, tierCounts } from '@/features/history/weaknessStats';
 import styles from './WeaknessDashboardScreen.module.css';
-
-const TIER_LABEL: Record<string, string> = {
-  brilliant: 'Brilliant',
-  best: 'Best',
-  good: 'Good',
-  inaccuracy: 'Inaccuracy',
-  mistake: 'Mistake',
-  blunder: 'Blunder',
-};
-
-const PHASE_LABEL: Record<GamePhase, string> = { opening: 'Opening', middlegame: 'Middlegame', endgame: 'Endgame' };
-
-const TAG_LABEL: Record<string, string> = {
-  hangsPiece: 'Hanging a piece',
-  missedMate: 'Missing a forced mate',
-  walksIntoMate: 'Walking into a forced mate',
-  goodTrade: 'Good trades',
-  developsPiece: 'Developing pieces',
-  ignoresCenter: 'Ignoring the center',
-  keepsAdvantage: 'Keeping an advantage',
-  throwsAwayAdvantage: 'Throwing away an advantage',
-  solid: 'Solid play',
-};
 
 const MIN_GAMES_FOR_TAGS = 3;
 
@@ -32,6 +10,7 @@ interface Props {
 }
 
 export function WeaknessDashboardScreen({ onExit }: Props) {
+  const { t } = useTranslation();
   const games = useGameHistoryStore((s) => s.games);
   const clearHistory = useGameHistoryStore((s) => s.clearHistory);
 
@@ -39,10 +18,10 @@ export function WeaknessDashboardScreen({ onExit }: Props) {
     return (
       <div className={styles.screen}>
         <div className={styles.card}>
-          <h1>My Stats</h1>
-          <p>Play a game and review it (or the daily puzzle / a ladder puzzle) to start building your stats here.</p>
+          <h1>{t('stats:title')}</h1>
+          <p>{t('stats:emptyBody')}</p>
           <button className="btn" onClick={onExit}>
-            ☰ Menu
+            {t('common:menu')}
           </button>
         </div>
       </div>
@@ -59,20 +38,18 @@ export function WeaknessDashboardScreen({ onExit }: Props) {
     <div className={styles.screen}>
       <div className={styles.card}>
         <header className={styles.header}>
-          <h1>My Stats</h1>
-          <p>
-            {games.length} game{games.length === 1 ? '' : 's'} reviewed · {totalMoves} moves graded
-          </p>
+          <h1>{t('stats:title')}</h1>
+          <p>{t('stats:gamesReviewed', { count: games.length, moves: totalMoves })}</p>
         </header>
 
         {summary && <p className={styles.insight}>💡 {summary}</p>}
 
         <section>
-          <h2 className={styles.sectionTitle}>Move quality</h2>
+          <h2 className={styles.sectionTitle}>{t('stats:moveQuality')}</h2>
           <div className={styles.tierBars}>
             {(Object.keys(tiers) as (keyof typeof tiers)[]).map((tier) => (
               <div key={tier} className={styles.tierRow}>
-                <span className={styles.tierName}>{TIER_LABEL[tier]}</span>
+                <span className={styles.tierName}>{t(`stats:tier_${tier}`)}</span>
                 <div className={styles.barTrack}>
                   <div
                     className={`${styles.barFill} ${styles[tier]}`}
@@ -86,11 +63,11 @@ export function WeaknessDashboardScreen({ onExit }: Props) {
         </section>
 
         <section>
-          <h2 className={styles.sectionTitle}>Mistake rate by phase</h2>
+          <h2 className={styles.sectionTitle}>{t('stats:mistakeRateByPhase')}</h2>
           <div className={styles.tierBars}>
             {phases.map((p) => (
               <div key={p.phase} className={styles.tierRow}>
-                <span className={styles.tierName}>{PHASE_LABEL[p.phase]}</span>
+                <span className={styles.tierName}>{t(`stats:phase_${p.phase}`)}</span>
                 <div className={styles.barTrack}>
                   <div className={`${styles.barFill} ${styles.blunder}`} style={{ width: `${p.mistakeRate * 100}%` }} />
                 </div>
@@ -102,12 +79,12 @@ export function WeaknessDashboardScreen({ onExit }: Props) {
 
         {games.length >= MIN_GAMES_FOR_TAGS && tags.length > 0 && (
           <section>
-            <h2 className={styles.sectionTitle}>Recurring mistakes</h2>
+            <h2 className={styles.sectionTitle}>{t('stats:recurringMistakes')}</h2>
             <ul className={styles.tagList}>
-              {tags.map((t) => (
-                <li key={t.tag} className={styles.tagRow}>
-                  <span>{TAG_LABEL[t.tag] ?? t.tag}</span>
-                  <span className={styles.tagCount}>{t.count}</span>
+              {tags.map((tagFreq) => (
+                <li key={tagFreq.tag} className={styles.tagRow}>
+                  <span>{t(`stats:tag_${tagFreq.tag}`)}</span>
+                  <span className={styles.tagCount}>{tagFreq.count}</span>
                 </li>
               ))}
             </ul>
@@ -116,10 +93,10 @@ export function WeaknessDashboardScreen({ onExit }: Props) {
 
         <div className={styles.actions}>
           <button className="btn" onClick={clearHistory}>
-            Clear history
+            {t('stats:clearHistory')}
           </button>
           <button className="btn" onClick={onExit}>
-            ☰ Menu
+            {t('common:menu')}
           </button>
         </div>
       </div>

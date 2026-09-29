@@ -7,15 +7,6 @@ import { EvalBar } from './EvalBar';
 import { ReasonModal } from './ReasonModal';
 import styles from './TutorPanel.module.css';
 
-const TIER_LABEL: Record<string, string> = {
-  brilliant: 'Brilliant',
-  best: 'Best move',
-  good: 'Good',
-  inaccuracy: 'Inaccuracy',
-  mistake: 'Mistake',
-  blunder: 'Blunder',
-};
-
 /** A move name with a toggle that reveals its plain-English meaning ("The knight on b8 moves to c6."). */
 function ExpandableMove({ label, san, detail }: { label: string; san: string; detail: string }) {
   const { t } = useTranslation();
@@ -60,7 +51,7 @@ export function TutorPanel() {
     <div className={styles.panel}>
       <div className={styles.header}>
         <span className={styles.moveNumber}>{index >= 0 ? t('tutor:moveNumber', { n: index + 1 }) : t('tutor:startPosition')}</span>
-        {current && <span className={`${styles.tier} ${styles[current.tier]}`}>{TIER_LABEL[current.tier]}</span>}
+        {current && <span className={`${styles.tier} ${styles[current.tier]}`}>{t(`stats:tier_${current.tier}`)}</span>}
       </div>
 
       <div className={styles.body}>

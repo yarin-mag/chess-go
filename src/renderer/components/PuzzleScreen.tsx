@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { colorName } from '@/features/game/labels';
 import { phraseFor } from '@/engine/explain';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
@@ -5,15 +6,6 @@ import { STAGE_COUNT, totalStagePuzzleCount } from '@/features/puzzle/puzzles';
 import { usePuzzleEffects } from '@/hooks/usePuzzleEffects';
 import { PuzzleBoard } from './PuzzleBoard';
 import styles from './PuzzleScreen.module.css';
-
-const TIER_LABEL: Record<string, string> = {
-  brilliant: 'Brilliant',
-  best: 'Best move',
-  good: 'Good',
-  inaccuracy: 'Inaccuracy',
-  mistake: 'Mistake',
-  blunder: 'Blunder',
-};
 
 const formatRushTime = (ms: number): string => {
   const totalSeconds = Math.ceil(ms / 1000);
@@ -27,6 +19,7 @@ interface Props {
 }
 
 export function PuzzleScreen({ onExit }: Props) {
+  const { t } = useTranslation();
   usePuzzleEffects();
   const {
     status,
@@ -81,7 +74,7 @@ export function PuzzleScreen({ onExit }: Props) {
 
           {status === 'wrong' && feedback && (
             <div className={styles.feedback}>
-              <span className={`${styles.tier} ${styles[feedback.tier]}`}>{TIER_LABEL[feedback.tier]}</span>
+              <span className={`${styles.tier} ${styles[feedback.tier]}`}>{t(`stats:tier_${feedback.tier}`)}</span>
               <p>{feedback.tags.map((tag, i) => phraseFor(tag, feedback.tier, feedback.move.san, i)).join(' ')}</p>
               <button className="btn btn-primary" onClick={retry}>
                 Try again

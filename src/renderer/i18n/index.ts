@@ -9,12 +9,15 @@ import gameEs from '@/locales/es/game.json';
 import tutorEn from '@/locales/en/tutor.json';
 import tutorHe from '@/locales/he/tutor.json';
 import tutorEs from '@/locales/es/tutor.json';
+import statsEn from '@/locales/en/stats.json';
+import statsHe from '@/locales/he/stats.json';
+import statsEs from '@/locales/es/stats.json';
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: commonEn, game: gameEn, tutor: tutorEn },
-    he: { common: commonHe, game: gameHe, tutor: tutorHe },
-    es: { common: commonEs, game: gameEs, tutor: tutorEs },
+    en: { common: commonEn, game: gameEn, tutor: tutorEn, stats: statsEn },
+    he: { common: commonHe, game: gameHe, tutor: tutorHe, stats: statsHe },
+    es: { common: commonEs, game: gameEs, tutor: tutorEs, stats: statsEs },
   },
   lng: 'en',
   fallbackLng: 'en',

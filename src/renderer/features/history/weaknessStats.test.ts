@@ -87,12 +87,24 @@ describe('biggestWeakness', () => {
     const moves: RecordedGame['moves'] = [];
     for (let i = 0; i < 10; i++) moves.push({ ply: i, tier: i < 4 ? 'blunder' : 'best', tags: i < 4 ? ['hangsPiece'] : [] });
     const summary = biggestWeakness([game('a', moves)]);
-    expect(summary).toContain('opening');
+    expect(summary).toContain('Opening'); // stats:phase_opening is capitalized, unlike the internal GamePhase literal
     expect(summary).toContain('hanging');
   });
 
   it('is null when there is enough data but no mistakes at all', () => {
     const moves: RecordedGame['moves'] = Array.from({ length: 8 }, (_, i) => ({ ply: i, tier: 'best', tags: ['solid'] }));
     expect(biggestWeakness([game('a', moves)])).toBeNull();
+  });
+
+  it('composes the insight sentence through the active locale', async () => {
+    const { default: i18n } = await import('@/i18n');
+    const moves: RecordedGame['moves'] = [];
+    for (let i = 0; i < 10; i++) moves.push({ ply: i, tier: i < 4 ? 'blunder' : 'best', tags: i < 4 ? ['hangsPiece'] : [] });
+    const games = [game('a', moves)];
+    const sentence = biggestWeakness(games)!;
+    expect(sentence).toContain('struggle most');
+    await i18n.changeLanguage('es');
+    expect(biggestWeakness(games)).toContain('cuesta más');
+    await i18n.changeLanguage('en');
   });
 });

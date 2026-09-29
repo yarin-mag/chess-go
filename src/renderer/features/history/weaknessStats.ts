@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { Tier } from '@/engine/classify';
 import type { ExplanationTag } from '@/engine/explain';
 
@@ -88,15 +89,17 @@ export function biggestWeakness(games: RecordedGame[]): string | null {
   if (worstPhase.mistakeCount === 0) return null;
 
   const percent = Math.round(worstPhase.mistakeRate * 100);
-  const phaseText = `You struggle most in the ${worstPhase.phase} (${percent}% of moves there are mistakes or worse)`;
-  if (tags.length === 0) return `${phaseText}.`;
-  return `${phaseText}, most often ${TAG_PHRASE[tags[0].tag] ?? tags[0].tag} (${tags[0].count} times).`;
+  const phaseText = t('stats:insightPhase', { phase: t(`stats:phase_${worstPhase.phase}`), percent });
+  if (tags.length === 0) return t('stats:insightPhaseOnly', { phaseText });
+  const tagKey = TAG_PHRASE_KEY[tags[0].tag];
+  const tagPhrase = tagKey ? t(`stats:${tagKey}`) : tags[0].tag;
+  return t('stats:insightWithTag', { phaseText, tagPhrase, count: tags[0].count });
 }
 
-const TAG_PHRASE: Partial<Record<ExplanationTag, string>> = {
-  hangsPiece: 'leaving a piece hanging',
-  missedMate: 'missing a forced mate',
-  walksIntoMate: 'walking into a forced mate',
-  ignoresCenter: 'ignoring the center',
-  throwsAwayAdvantage: 'throwing away an advantage',
+const TAG_PHRASE_KEY: Partial<Record<ExplanationTag, string>> = {
+  hangsPiece: 'tagPhrase_hangsPiece',
+  missedMate: 'tagPhrase_missedMate',
+  walksIntoMate: 'tagPhrase_walksIntoMate',
+  ignoresCenter: 'tagPhrase_ignoresCenter',
+  throwsAwayAdvantage: 'tagPhrase_throwsAwayAdvantage',
 };
