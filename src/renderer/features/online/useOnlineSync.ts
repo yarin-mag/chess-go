@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { t } from '@/i18n';
 import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
 import { useOnlineStore } from './onlineStore';
 import { isKnownReaction } from './protocol';
@@ -40,8 +41,8 @@ export function useOnlineSync(): void {
         useGameStore.getState().resign(opponentColor!);
       } else if (msg.type === 'drawResponse' && msg.accepted) {
         useGameStore.getState().agreeDraw();
-      } else if (msg.type === 'reaction' && isKnownReaction(msg.text)) {
-        useReactionStore.getState().show(msg.text);
+      } else if (msg.type === 'reaction' && isKnownReaction(msg.key)) {
+        useReactionStore.getState().show(t(`online:reaction_${msg.key}`));
       }
     });
   }, [connection, localColor, isOnline]);

@@ -1,10 +1,11 @@
 import { create } from 'zustand';
+import { t } from '@/i18n';
 import { opposite, type Color, type TimeControl } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import { RemotePlayer } from '@/features/game/players';
 import { useOnlineLobbyStore } from './onlineLobbyVisibilityStore';
 import { hostRoom, joinRoom, JOIN_TIMEOUT_MS, type OnlineConnection } from './peerConnection';
-import { isKnownReaction, type NetworkMessage } from './protocol';
+import { isKnownReaction, type NetworkMessage, type ReactionKey } from './protocol';
 import { useReactionStore } from './reactionStore';
 
 type OnlineStatus = 'idle' | 'hosting' | 'joining' | 'connected' | 'error';
@@ -23,7 +24,7 @@ interface OnlineState {
   joinGame(roomCode: string): Promise<void>;
   clearDrawOffer(): void;
   sendDrawOffer(): void;
-  sendReaction(text: string): void;
+  sendReaction(key: ReactionKey): void;
   leave(): void;
 }
 
@@ -67,7 +68,7 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
         set({ incomingDrawOffer: true });
       } else if (msg.type === 'drawResponse') {
         set({ drawOfferSent: false });
-        if (!msg.accepted) useReactionStore.getState().show('Draw declined');
+        if (!msg.accepted) useReactionStore.getState().show(t('online:drawDeclined'));
       }
     });
     connection.onClose(() => {
@@ -155,11 +156,12 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
       set({ drawOfferSent: true });
     },
 
-    sendReaction(text) {
+    sendReaction(key) {
       const { connection } = get();
-      if (!connection || !isKnownReaction(text)) return;
-      connection.send({ type: 'reaction', text });
-      useReactionStore.getState().show(text); // the sender sees their own reaction pop too, not just the receiver
+      if (!connection || !isKnownReaction(key)) return;
+      connection.send({ type: 'reaction', key });
+      // the sender sees their own reaction pop too, not just the receiver — shown in the sender's own locale
+      useReactionStore.getState().show(t(`online:reaction_${key}`));
     },
 
     leave() {

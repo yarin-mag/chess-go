@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { randomRoomCode, REACTIONS, isKnownReaction } from './protocol';
+import { randomRoomCode, REACTION_KEYS, isKnownReaction } from './protocol';
 
 describe('randomRoomCode', () => {
   it('is 6 characters of A-Z and 0-9', () => {
@@ -13,13 +13,13 @@ describe('randomRoomCode', () => {
 });
 
 describe('isKnownReaction', () => {
-  it('accepts every preset in REACTIONS', () => {
-    for (const r of REACTIONS) expect(isKnownReaction(r)).toBe(true);
+  it('accepts every key in REACTION_KEYS', () => {
+    for (const k of REACTION_KEYS) expect(isKnownReaction(k)).toBe(true);
   });
 
-  it('rejects text that is not in the preset list', () => {
+  it('rejects anything not in the key list — including old-style display text', () => {
     expect(isKnownReaction('<script>alert(1)</script>')).toBe(false);
-    expect(isKnownReaction('Nice move! ')).toBe(false); // no fuzzy match — trailing space is a different string
+    expect(isKnownReaction('Nice move!')).toBe(false); // display text, not a key — the old wire format
     expect(isKnownReaction('')).toBe(false);
   });
 });

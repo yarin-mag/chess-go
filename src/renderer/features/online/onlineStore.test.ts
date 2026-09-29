@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { NetworkMessage } from './protocol';
+import type { NetworkMessage, ReactionKey } from './protocol';
 
 function fakeConnection() {
   const handlers: ((msg: NetworkMessage) => void)[] = [];
@@ -114,20 +114,20 @@ describe('onlineStore', () => {
 
   it('sendReaction sends over the connection and shows it locally', async () => {
     await useOnlineStore.getState().hostGame(UNTIMED);
-    useOnlineStore.getState().sendReaction('👍');
-    expect(conn.sent.find((m) => m.type === 'reaction')).toEqual({ type: 'reaction', text: '👍' });
+    useOnlineStore.getState().sendReaction('thumbsUp');
+    expect(conn.sent.find((m) => m.type === 'reaction')).toEqual({ type: 'reaction', key: 'thumbsUp' });
     expect(useReactionStore.getState().current?.text).toBe('👍');
   });
 
-  it('sendReaction ignores text that is not a known preset', async () => {
+  it('sendReaction ignores a key that is not a known preset', async () => {
     await useOnlineStore.getState().hostGame(UNTIMED);
-    useOnlineStore.getState().sendReaction('not a real reaction');
+    useOnlineStore.getState().sendReaction('not a real reaction' as ReactionKey);
     expect(conn.sent.find((m) => m.type === 'reaction')).toBeUndefined();
     expect(useReactionStore.getState().current).toBeNull();
   });
 
   it('sendReaction does nothing when there is no connection', () => {
-    useOnlineStore.getState().sendReaction('👍');
+    useOnlineStore.getState().sendReaction('thumbsUp');
     expect(useReactionStore.getState().current).toBeNull();
   });
 

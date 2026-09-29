@@ -6,7 +6,7 @@ export type NetworkMessage =
   | { type: 'resign' }
   | { type: 'drawOffer' }
   | { type: 'drawResponse'; accepted: boolean }
-  | { type: 'reaction'; text: string };
+  | { type: 'reaction'; key: ReactionKey };
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -18,15 +18,18 @@ export function randomRoomCode(): string {
 }
 
 /**
- * The only valid `reaction.text` values — emoji + canned chess phrases, never freeform typing. Both the
+ * The only valid `reaction.key` values — emoji + canned chess phrases, never freeform typing. Both the
  * send path (onlineStore.sendReaction) and the receive path (useOnlineSync) check isKnownReaction before
  * a reaction reaches the wire or the screen, so a malformed/hostile peer message can't inject arbitrary text.
+ * The wire carries only the key; each side looks up its own locale's `online:reaction_<key>` display text —
+ * that's what lets two clients on different locales each see the reaction in their own language.
  */
-export const REACTIONS: readonly string[] = [
-  '👍', '😮', '😱', '🔥', '🤝', '😂', '♟️',
-  'Nice move!', 'Wow!', 'Blunder!', 'Brilliant!', 'Check!', 'Good game', 'Oops', 'Well played',
-];
+export const REACTION_KEYS = [
+  'thumbsUp', 'wow', 'yikes', 'fire', 'handshake', 'laugh', 'pawn',
+  'niceMove', 'wowText', 'blunder', 'brilliant', 'check', 'goodGame', 'oops', 'wellPlayed',
+] as const;
+export type ReactionKey = (typeof REACTION_KEYS)[number];
 
-export function isKnownReaction(text: string): boolean {
-  return REACTIONS.includes(text);
+export function isKnownReaction(key: string): key is ReactionKey {
+  return (REACTION_KEYS as readonly string[]).includes(key);
 }

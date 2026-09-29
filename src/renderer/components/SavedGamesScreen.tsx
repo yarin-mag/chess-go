@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { Color } from '@/core/types';
 import { describeResult, playerLabel } from '@/features/game/labels';
 import type { GameConfig } from '@/features/game/gameStore';
@@ -10,12 +12,13 @@ interface Props {
 }
 
 /** "Computer · Medium" when either side is the engine, otherwise a local two-player game. */
-function opponentLabel(config: GameConfig): string {
+function opponentLabel(config: GameConfig, t: TFunction): string {
   const engineColor: Color | null = config.white.type === 'engine' ? 'w' : config.black.type === 'engine' ? 'b' : null;
-  return engineColor ? playerLabel(config, engineColor) : 'Local · 2 players';
+  return engineColor ? playerLabel(config, engineColor) : t('online:localTwoPlayers');
 }
 
 export function SavedGamesScreen({ onExit }: Props) {
+  const { t } = useTranslation();
   const games = useSavedGamesStore((s) => s.games);
   const deleteGame = useSavedGamesStore((s) => s.deleteGame);
   const clearSaved = useSavedGamesStore((s) => s.clearSaved);
@@ -25,10 +28,10 @@ export function SavedGamesScreen({ onExit }: Props) {
     return (
       <div className={styles.screen}>
         <div className={styles.card}>
-          <h1>Saved games</h1>
-          <p>Finish a game and it will show up here, ready to open and step through again any time.</p>
+          <h1>{t('online:savedGamesTitle')}</h1>
+          <p>{t('online:savedGamesEmpty')}</p>
           <button className="btn" onClick={onExit}>
-            ☰ Menu
+            {t('common:menu')}
           </button>
         </div>
       </div>
@@ -39,10 +42,8 @@ export function SavedGamesScreen({ onExit }: Props) {
     <div className={styles.screen}>
       <div className={styles.card}>
         <header className={styles.header}>
-          <h1>Saved games</h1>
-          <p>
-            {games.length} game{games.length === 1 ? '' : 's'} saved on this device
-          </p>
+          <h1>{t('online:savedGamesTitle')}</h1>
+          <p>{t('online:savedGamesCount', { count: games.length })}</p>
         </header>
 
         <ul className={styles.list}>
@@ -54,10 +55,14 @@ export function SavedGamesScreen({ onExit }: Props) {
               >
                 <span className={styles.rowDate}>{new Date(g.playedAt).toLocaleString()}</span>
                 <span className={styles.rowDetail}>
-                  {describeResult(g.result).title} · {opponentLabel(g.config)} · {g.history.length} moves
+                  {t('online:savedGameRow', {
+                    result: describeResult(g.result).title,
+                    opponent: opponentLabel(g.config, t),
+                    moves: g.history.length,
+                  })}
                 </span>
               </button>
-              <button className={styles.rowDelete} onClick={() => deleteGame(g.id)} aria-label="Delete saved game">
+              <button className={styles.rowDelete} onClick={() => deleteGame(g.id)} aria-label={t('online:deleteSavedGame')}>
                 ✕
               </button>
             </li>
@@ -66,10 +71,10 @@ export function SavedGamesScreen({ onExit }: Props) {
 
         <div className={styles.actions}>
           <button className="btn" onClick={clearSaved}>
-            Clear all
+            {t('online:clearAll')}
           </button>
           <button className="btn" onClick={onExit}>
-            ☰ Menu
+            {t('common:menu')}
           </button>
         </div>
       </div>
