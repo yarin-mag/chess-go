@@ -1,0 +1,89 @@
+import { create } from 'zustand';
+import { ChessGame } from '@/core/chessGame';
+import type { Color, MoveInput } from '@/core/types';
+import type { CuratedOpening } from './curatedOpenings';
+
+const uciToMove = (uci: string): MoveInput => ({
+  from: uci.slice(0, 2),
+  to: uci.slice(2, 4),
+  promotion: uci.length > 4 ? (uci[4] as MoveInput['promotion']) : undefined,
+});
+
+const sameMove = (a: MoveInput, b: MoveInput) => a.from === b.from && a.to === b.to;
+
+interface OpeningQuizState {
+  opening: CuratedOpening | null;
+  side: Color;
+  game: ChessGame;
+  step: number;
+  correctCount: number;
+  status: 'idle' | 'playing' | 'done';
+  lastWrong: { san: string; bookSan: string } | null;
+  start(opening: CuratedOpening, side: Color): void;
+  submitMove(move: MoveInput): void;
+  exit(): void;
+}
+
+export const useOpeningQuizStore = create<OpeningQuizState>((set, get) => {
+  /** Plays step `i` of the sequence (assumed legal — it's the curated line) and advances `step`. */
+  const playStep = (i: number) => {
+    const { game, opening } = get();
+    game.move(uciToMove(opening!.sequence[i]));
+    set({ step: i + 1 });
+  };
+
+  /** After the player's turn resolves, auto-play the opponent's scripted reply if the line continues,
+   *  or the very next step immediately if it's the opponent's turn to open (player chose Black). */
+  const advanceOpponentIfNeeded = () => {
+    const { opening, step } = get();
+    if (!opening) return;
+    if (step >= opening.sequence.length) {
+      set({ status: 'done' });
+      return;
+    }
+    const isPlayerTurn = step % 2 === (get().side === 'w' ? 0 : 1);
+    if (!isPlayerTurn) {
+      playStep(step);
+      advanceOpponentIfNeeded();
+    }
+  };
+
+  return {
+    opening: null,
+    side: 'w',
+    game: new ChessGame(),
+    step: 0,
+    correctCount: 0,
+    status: 'idle',
+    lastWrong: null,
+
+    start(opening, side) {
+      set({ opening, side, game: new ChessGame(), step: 0, correctCount: 0, status: 'playing', lastWrong: null });
+      advanceOpponentIfNeeded();
+    },
+
+    submitMove(move) {
+      const { status, opening, step, side, game } = get();
+      if (status !== 'playing' || !opening) return;
+      const isPlayerTurn = step % 2 === (side === 'w' ? 0 : 1);
+      if (!isPlayerTurn) return;
+
+      const book = uciToMove(opening.sequence[step]);
+      if (!sameMove(move, book)) {
+        const bookSan = new ChessGame(game.fen()).move(book)?.san ?? opening.sequence[step];
+        const attemptedSan = new ChessGame(game.fen()).move(move)?.san ?? `${move.from}${move.to}`;
+        set({ lastWrong: { san: attemptedSan, bookSan } });
+        return;
+      }
+
+      set({ lastWrong: null });
+      playStep(step);
+      set({ correctCount: get().correctCount + 1 });
+      advanceOpponentIfNeeded();
+    },
+
+    exit() {
+      set({ opening: null, game: new ChessGame(), step: 0, correctCount: 0, status: 'idle', lastWrong: null });
+    },
+  };
+});
