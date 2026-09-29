@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { phraseFor, reasonFor } from '@/engine/explain';
 import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
 import { useOnlineSync } from '@/features/online/useOnlineSync';
@@ -15,6 +16,7 @@ import styles from './GameScreen.module.css';
 
 /** Board on the left; clocks, move list and controls in the sidebar. */
 export function GameScreen() {
+  const { t } = useTranslation();
   useGameEffects();
   const flipped = useGameStore((s) => s.flipped);
   const gameId = useGameStore((s) => s.gameId);
@@ -38,7 +40,7 @@ export function GameScreen() {
     <div className={styles.screen} data-moves-collapsed={movesCollapsed}>
       <Board />
       <aside className={styles.sidebar}>
-        {isOnline && <p className={styles.onlinePill}>🌐 Online</p>}
+        {isOnline && <p className={styles.onlinePill}>{t('online:onlinePill')}</p>}
         <ClockPanel color={top} />
         <MoveList collapsed={movesCollapsed} onToggleCollapsed={() => setMovesCollapsed((c) => !c)} />
         {hint && (
@@ -48,12 +50,12 @@ export function GameScreen() {
               className={styles.hintWhy}
               onClick={() =>
                 setHintReason({
-                  title: `Why ${hint.san}?`,
+                  title: t('tutor:whyTitle', { san: hint.san }),
                   text: hint.tags.map((tag, i) => reasonFor(tag, 'best', hint.san, i)).join(' '),
                 })
               }
             >
-              Why?
+              {t('common:why')}
             </button>
           </p>
         )}

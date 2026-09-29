@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '@/features/game/gameStore';
 import { useReviewStore } from '@/features/review/reviewStore';
 import { MoveList } from './MoveList';
@@ -7,6 +8,7 @@ import { TutorPanel } from './TutorPanel';
 import styles from './ReviewScreen.module.css';
 
 export function ReviewScreen() {
+  const { t } = useTranslation();
   const { index, history, next, prev, goTo, exit } = useReviewStore();
   const backToMenu = useGameStore((s) => s.backToMenu);
   const [flipped, setFlipped] = useState(false);
@@ -33,10 +35,10 @@ export function ReviewScreen() {
         <MoveList history={history} onSelectPly={goTo} activePly={index} />
         <div className={styles.actions}>
           <button className="btn" onClick={() => setFlipped((f) => !f)}>
-            ⇅ Flip
+            {t('common:flip')}
           </button>
           <button className="btn" onClick={leaveToMenu}>
-            ☰ Menu
+            {t('common:menu')}
           </button>
         </div>
       </aside>
