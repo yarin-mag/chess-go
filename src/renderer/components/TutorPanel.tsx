@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { describeMove, describePotentialMove } from '@/core/describeMove';
 import { useReviewStore } from '@/features/review/reviewStore';
 import { phraseFor, reasonFor } from '@/engine/explain';
@@ -17,13 +18,14 @@ const TIER_LABEL: Record<string, string> = {
 
 /** A move name with a toggle that reveals its plain-English meaning ("The knight on b8 moves to c6."). */
 function ExpandableMove({ label, san, detail }: { label: string; san: string; detail: string }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <div className={styles.moveRow}>
       <p className={styles.moveLine}>
         {label} <strong>{san}</strong>
         <button className={styles.expandBtn} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-          {open ? 'Collapse ▲' : 'Expand ▾'}
+          {open ? t('tutor:collapse') : t('tutor:expand')}
         </button>
       </p>
       {open && <p className={styles.moveDetail}>{detail}</p>}
@@ -32,6 +34,7 @@ function ExpandableMove({ label, san, detail }: { label: string; san: string; de
 }
 
 export function TutorPanel() {
+  const { t } = useTranslation();
   const { analysis, index, status, progress, goTo, history } = useReviewStore();
   const current = index >= 0 ? analysis[index] : null;
   const [reasonOpen, setReasonOpen] = useState(false);
@@ -42,15 +45,12 @@ export function TutorPanel() {
       <div className={styles.panel}>
         <div className={styles.analyzing}>
           <p className={styles.analyzingLabel}>
-            Grading move {progress.done} of {progress.total}…
+            {t('tutor:analyzing', { done: progress.done, total: progress.total })}
           </p>
           <div className={styles.progressTrack}>
             <div className={styles.progressFill} style={{ width: `${percent}%` }} />
           </div>
-          <p className={styles.analyzingHint}>
-            Comparing every move you played against the engine's own best move. The board already shows
-            where the game ended — feel free to look around while this finishes.
-          </p>
+          <p className={styles.analyzingHint}>{t('tutor:analyzingHint')}</p>
         </div>
       </div>
     );
@@ -59,7 +59,7 @@ export function TutorPanel() {
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
-        <span className={styles.moveNumber}>{index >= 0 ? `Move ${index + 1}` : 'Start position'}</span>
+        <span className={styles.moveNumber}>{index >= 0 ? t('tutor:moveNumber', { n: index + 1 }) : t('tutor:startPosition')}</span>
         {current && <span className={`${styles.tier} ${styles[current.tier]}`}>{TIER_LABEL[current.tier]}</span>}
       </div>
 
@@ -73,34 +73,34 @@ export function TutorPanel() {
           )}
           {current ? (
             <>
-              <ExpandableMove key={`played-${current.ply}`} label="Played:" san={current.move.san} detail={describeMove(current.move)} />
+              <ExpandableMove key={`played-${current.ply}`} label={t('tutor:played')} san={current.move.san} detail={describeMove(current.move)} />
               <p className={styles.tagLine}>
                 {current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
                 <button className={styles.whyBtn} onClick={() => setReasonOpen(true)}>
-                  Why?
+                  {t('common:why')}
                 </button>
               </p>
               {current.tier !== 'best' && current.tier !== 'brilliant' && (
                 <ExpandableMove
                   key={`best-${current.ply}`}
-                  label="Best was"
+                  label={t('tutor:bestWas')}
                   san={current.bestSan}
                   detail={describePotentialMove(current.fenBefore, current.bestMove)}
                 />
               )}
             </>
           ) : (
-            <p>Starting position. Swipe or use the arrow keys to step through the game.</p>
+            <p>{t('tutor:startPositionHint')}</p>
           )}
         </div>
       </div>
 
       <div className={styles.nav}>
         <button className="btn" disabled={index <= -1} onClick={() => goTo(index - 1)}>
-          ← Prev
+          {t('tutor:prev')}
         </button>
         <button className="btn" disabled={index >= history.length - 1} onClick={() => goTo(index + 1)}>
-          Next →
+          {t('tutor:next')}
         </button>
       </div>
 
@@ -108,7 +108,7 @@ export function TutorPanel() {
         <ReasonModal
           open={reasonOpen}
           onClose={() => setReasonOpen(false)}
-          title={`Why ${current.move.san}?`}
+          title={t('tutor:whyTitle', { san: current.move.san })}
           text={current.tags.map((tag, i) => reasonFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
         />
       )}

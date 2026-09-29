@@ -71,6 +71,13 @@ describe('phraseFor', () => {
   it('substitutes the move san', () => {
     expect(phraseFor('hangsPiece', 'blunder', 'e4', 0)).toContain('e4');
   });
+
+  it('translates through the active locale', async () => {
+    const { default: i18n } = await import('@/i18n');
+    await i18n.changeLanguage('es');
+    expect(phraseFor('hangsPiece', 'blunder', 'e4', 0)).toContain('colgada');
+    await i18n.changeLanguage('en');
+  });
 });
 
 describe('reasonFor', () => {
