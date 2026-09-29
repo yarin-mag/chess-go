@@ -10,6 +10,8 @@
   "enterRoomCode": "Ingresa el código de la sala",
   "join": "Unirse",
   "connecting": "Conectando…",
+  "errorRoomUnreachable": "No se pudo llegar a esa sala — revisa el código e inténtalo de nuevo.",
+  "errorConnectionFailed": "Falló la conexión.",
   "reactBtn": "😊 Reaccionar",
   "drawDeclined": "Tablas rechazadas",
   "reaction_thumbsUp": "👍",

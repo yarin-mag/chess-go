@@ -4,7 +4,7 @@ import { opposite, type Color, type TimeControl } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import { RemotePlayer } from '@/features/game/players';
 import { useOnlineLobbyStore } from './onlineLobbyVisibilityStore';
-import { hostRoom, joinRoom, JOIN_TIMEOUT_MS, type OnlineConnection } from './peerConnection';
+import { hostRoom, joinRoom, JOIN_TIMEOUT_MS, ROOM_UNREACHABLE, type OnlineConnection } from './peerConnection';
 import { isKnownReaction, type NetworkMessage, type ReactionKey } from './protocol';
 import { useReactionStore } from './reactionStore';
 
@@ -36,7 +36,7 @@ function waitForInit(connection: OnlineConnection, signal: AbortSignal): Promise
     // (host crashed/reloaded/buggy), don't hang the joiner forever — match joinRoom's own timeout.
     const timeout = setTimeout(() => {
       unsubscribe();
-      reject(new Error('Could not reach that room — check the code and try again.'));
+      reject(new Error(ROOM_UNREACHABLE));
     }, JOIN_TIMEOUT_MS);
     unsubscribe = connection.onMessage((msg) => {
       if (msg.type !== 'init') return;
@@ -54,6 +54,12 @@ function waitForInit(connection: OnlineConnection, signal: AbortSignal): Promise
       { once: true },
     );
   });
+}
+
+/** Never surfaces raw English (PeerJS's own error text, or anything else) to the UI — only these two. */
+function describeConnectionError(e: unknown): string {
+  const key = e instanceof Error && e.message === ROOM_UNREACHABLE ? 'errorRoomUnreachable' : 'errorConnectionFailed';
+  return t(`online:${key}`);
 }
 
 // The in-flight host/join attempt, if any — aborted by leave() so a user who backs out of the lobby (or
@@ -117,7 +123,7 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
         enterGame(connection, localColor, timeControl);
       } catch (e) {
         if (controller.signal.aborted) return; // expected — leave() caused this
-        set({ status: 'error', error: e instanceof Error ? e.message : 'Connection failed' });
+        set({ status: 'error', error: describeConnectionError(e) });
       } finally {
         if (inFlight === controller) inFlight = null;
       }
@@ -139,7 +145,7 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
         enterGame(connection, init.joinerColor, init.timeControl);
       } catch (e) {
         if (controller.signal.aborted) return;
-        set({ status: 'error', error: e instanceof Error ? e.message : 'Connection failed' });
+        set({ status: 'error', error: describeConnectionError(e) });
       } finally {
         if (inFlight === controller) inFlight = null;
       }

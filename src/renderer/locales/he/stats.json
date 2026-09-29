@@ -28,6 +28,7 @@
   "title": "הסטטיסטיקה שלי",
   "emptyBody": "שחק משחק ונתח אותו (או את חידת היום / חידת הסולם) כדי להתחיל לבנות כאן סטטיסטיקה.",
   "gamesReviewed_one": "משחק אחד נותח · {{moves}} מהלכים דורגו",
+  "gamesReviewed_two": "שני משחקים נותחו · {{moves}} מהלכים דורגו",
   "gamesReviewed_other": "{{count}} משחקים נותחו · {{moves}} מהלכים דורגו",
   "moveQuality": "איכות המהלכים",
   "mistakeRateByPhase": "שיעור טעויות לפי שלב",

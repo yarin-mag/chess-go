@@ -22,7 +22,7 @@
   "tagPhrase_walksIntoMate": "caer en un mate forzado",
   "tagPhrase_ignoresCenter": "ignorar el centro",
   "tagPhrase_throwsAwayAdvantage": "desperdiciar una ventaja",
-  "insightPhase": "Te cuesta más en el {{phase}} ({{percent}}% de los movimientos ahí son errores o peor)",
+  "insightPhase": "Tu mayor dificultad es la fase de {{phase}} ({{percent}}% de los movimientos ahí son errores o peor)",
   "insightPhaseOnly": "{{phaseText}}.",
   "insightWithTag": "{{phaseText}}, sobre todo por {{tagPhrase}} ({{count}} veces).",
   "title": "Mis estadísticas",

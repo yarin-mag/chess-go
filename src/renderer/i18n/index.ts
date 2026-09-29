@@ -37,19 +37,25 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false }, // React already escapes; this avoids double-escaping
 });
 
-/** Never mirrors the chess board itself — only surrounding UI (see Board.module.css's explicit override). */
-function applyDirection(locale: string): void {
+/**
+ * `dir` never mirrors the chess board itself — only surrounding UI (see Board.module.css's explicit
+ * override). `lang` matters independently of `dir`: without it, screen readers keep using the previous
+ * (or index.html's hardcoded "en") pronunciation/phoneme set for the new locale's text, and browser font
+ * fallback, hyphenation and spellcheck all key off it too.
+ */
+function applyLocaleToDocument(locale: string): void {
   if (typeof document === 'undefined') return; // no DOM under Vitest's 'node' test environment
   document.documentElement.dir = locale === 'he' ? 'rtl' : 'ltr';
+  document.documentElement.lang = locale;
 }
 
-applyDirection(persistedLocale);
+applyLocaleToDocument(persistedLocale);
 
 // The single place that reacts to settingsStore.locale changing — SettingsPanel just calls `update`,
 // it doesn't need its own effect duplicating this sync.
 useSettingsStore.subscribe((state) => {
   if (state.locale !== i18n.language) void i18n.changeLanguage(state.locale);
-  applyDirection(state.locale);
+  applyLocaleToDocument(state.locale);
 });
 
 export default i18n;

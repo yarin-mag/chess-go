@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import i18n from '@/i18n';
 import { ChessGame } from './chessGame';
 import { describeMove, describePotentialMove } from './describeMove';
+
+// A locale-switch test that throws before its own restore call would otherwise leave every later
+// test in this file running against the wrong locale — restore unconditionally instead.
+afterEach(async () => {
+  if (i18n.language !== 'en') await i18n.changeLanguage('en');
+});
 
 describe('describeMove', () => {
   it('describes a plain move', () => {
@@ -53,6 +60,33 @@ describe('describeMove', () => {
     const g = new ChessGame();
     const m = g.move({ from: 'e2', to: 'e4' })!;
     expect(describeMove(m)).toBe('El peón en e2 se mueve a e4.');
+    await i18n.changeLanguage('en');
+  });
+
+  it('uses feminine grammatical agreement for a rook (or queen) move in Spanish', async () => {
+    const { default: i18n } = await import('@/i18n');
+    await i18n.changeLanguage('es');
+    const g = new ChessGame('6k1/8/8/8/8/8/8/R3K3 w - - 0 1');
+    const m = g.move({ from: 'a1', to: 'a5' })!;
+    expect(describeMove(m)).toBe('La torre en a1 se mueve a a5.');
+    await i18n.changeLanguage('en');
+  });
+
+  it('agrees the mover and the captured piece independently in Spanish (rook takes pawn)', async () => {
+    const { default: i18n } = await import('@/i18n');
+    await i18n.changeLanguage('es');
+    const g = new ChessGame('6k1/8/8/3p4/8/8/8/3RK3 w - - 0 1');
+    const m = g.move({ from: 'd1', to: 'd5' })!;
+    expect(describeMove(m)).toBe('La torre en d1 captura al peón en d5.');
+    await i18n.changeLanguage('en');
+  });
+
+  it('agrees the mover and the captured piece independently in Spanish (pawn takes rook)', async () => {
+    const { default: i18n } = await import('@/i18n');
+    await i18n.changeLanguage('es');
+    const g = new ChessGame('6k1/8/8/3r4/4P3/8/8/4K3 w - - 0 1');
+    const m = g.move({ from: 'e4', to: 'd5' })!;
+    expect(describeMove(m)).toBe('El peón en e4 captura a la torre en d5.');
     await i18n.changeLanguage('en');
   });
 });

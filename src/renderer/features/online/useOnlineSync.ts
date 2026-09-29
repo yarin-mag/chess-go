@@ -6,6 +6,16 @@ import { isKnownReaction } from './protocol';
 import { useReactionStore } from './reactionStore';
 
 /**
+ * Resolves what an incoming reaction message should display — in the *receiver's own* active locale,
+ * not whatever the sender's client rendered. This is the entire point of the REACTIONS→REACTION_KEYS
+ * wire-protocol split: pulled out as its own function so it's testable without rendering the hook.
+ * Returns null for a key that isn't (or is no longer) a known preset, e.g. from a malformed/hostile peer.
+ */
+export function reactionText(key: string): string | null {
+  return isKnownReaction(key) ? t(`online:reaction_${key}`) : null;
+}
+
+/**
  * Relays local moves out over the connection and applies incoming resign/draw/reaction messages. Mount
  * once, in GameScreen, only while an online game is connected.
  *
@@ -41,8 +51,9 @@ export function useOnlineSync(): void {
         useGameStore.getState().resign(opponentColor!);
       } else if (msg.type === 'drawResponse' && msg.accepted) {
         useGameStore.getState().agreeDraw();
-      } else if (msg.type === 'reaction' && isKnownReaction(msg.key)) {
-        useReactionStore.getState().show(t(`online:reaction_${msg.key}`));
+      } else if (msg.type === 'reaction') {
+        const text = reactionText(msg.key);
+        if (text) useReactionStore.getState().show(text);
       }
     });
   }, [connection, localColor, isOnline]);

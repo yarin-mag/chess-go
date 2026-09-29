@@ -11,6 +11,14 @@ export interface OnlineConnection {
 
 export const JOIN_TIMEOUT_MS = 10_000;
 
+/**
+ * Internal marker distinguishing "we timed out waiting" from PeerJS's own (untranslated, arbitrary)
+ * error messages — never shown to the user directly. onlineStore.ts checks for this exact message and
+ * maps it to the translated `online:errorRoomUnreachable` string; anything else falls back to the
+ * translated `online:errorConnectionFailed` generic message, so no raw English ever reaches the UI.
+ */
+export const ROOM_UNREACHABLE = 'ROOM_UNREACHABLE';
+
 function wrap(dc: DataConnection): OnlineConnection {
   return {
     send: (msg) => dc.send(msg),
@@ -77,7 +85,7 @@ export function joinRoom(roomCode: string, signal?: AbortSignal): Promise<Online
     const peer = new Peer();
     const timeout = setTimeout(() => {
       peer.destroy();
-      reject(new Error('Could not reach that room — check the code and try again.'));
+      reject(new Error(ROOM_UNREACHABLE));
     }, JOIN_TIMEOUT_MS);
     signal?.addEventListener(
       'abort',

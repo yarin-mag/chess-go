@@ -10,6 +10,8 @@
   "enterRoomCode": "Enter room code",
   "join": "Join",
   "connecting": "Connecting…",
+  "errorRoomUnreachable": "Could not reach that room — check the code and try again.",
+  "errorConnectionFailed": "Connection failed.",
   "reactBtn": "😊 React",
   "drawDeclined": "Draw declined",
   "reaction_thumbsUp": "👍",

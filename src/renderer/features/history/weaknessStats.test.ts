@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import i18n from '@/i18n';
 import {
   biggestWeakness,
   phaseBreakdown,
@@ -7,6 +8,12 @@ import {
   tierCounts,
   type RecordedGame,
 } from './weaknessStats';
+
+// A locale-switch test that throws before its own restore call would otherwise leave every later
+// test in this file running against the wrong locale — restore unconditionally instead.
+afterEach(async () => {
+  if (i18n.language !== 'en') await i18n.changeLanguage('en');
+});
 
 const game = (id: string, moves: RecordedGame['moves']): RecordedGame => ({ id, playedAt: '2026-01-01T00:00:00.000Z', moves });
 
@@ -104,7 +111,7 @@ describe('biggestWeakness', () => {
     const sentence = biggestWeakness(games)!;
     expect(sentence).toContain('struggle most');
     await i18n.changeLanguage('es');
-    expect(biggestWeakness(games)).toContain('cuesta más');
+    expect(biggestWeakness(games)).toContain('mayor dificultad');
     await i18n.changeLanguage('en');
   });
 });

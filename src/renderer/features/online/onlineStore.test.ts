@@ -38,6 +38,7 @@ vi.mock('./peerConnection', () => ({
   hostRoom: vi.fn(async () => ({ roomCode: 'ABC123', connected: Promise.resolve(conn) })),
   joinRoom: vi.fn(async () => conn),
   JOIN_TIMEOUT_MS: 10_000,
+  ROOM_UNREACHABLE: 'ROOM_UNREACHABLE',
 }));
 
 vi.mock('@/features/game/gameStore', () => ({
@@ -199,5 +200,28 @@ describe('onlineStore', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('renders the timeout error through the active locale, not hardcoded English', async () => {
+    const { default: i18n } = await import('@/i18n');
+    await i18n.changeLanguage('es');
+    vi.useFakeTimers();
+    try {
+      const promise = useOnlineStore.getState().joinGame('ABC123');
+      await vi.advanceTimersByTimeAsync(JOIN_TIMEOUT_MS);
+      await promise;
+      expect(useOnlineStore.getState().error).toMatch(/revisa el código/i);
+    } finally {
+      vi.useRealTimers();
+      await i18n.changeLanguage('en');
+    }
+  });
+
+  it('never leaks a raw (untranslated) error message for a non-timeout failure', async () => {
+    vi.mocked(joinRoom).mockRejectedValueOnce(new Error('some arbitrary PeerJS wire error'));
+    await useOnlineStore.getState().joinGame('ABC123');
+    expect(useOnlineStore.getState().status).toBe('error');
+    expect(useOnlineStore.getState().error).not.toMatch(/arbitrary PeerJS/);
+    expect(useOnlineStore.getState().error).toBe('Connection failed.');
   });
 });

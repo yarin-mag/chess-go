@@ -1,7 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import i18n from '@/i18n';
 import { ChessGame } from '@/core/chessGame';
 import { explainTags, isHanging, sacrificesMaterial, phraseFor, reasonFor } from './explain';
 import type { MoveGrade } from './analyze';
+
+// A locale-switch test that throws before its own restore call would otherwise leave every later
+// test in this file running against the wrong locale — restore unconditionally instead.
+afterEach(async () => {
+  if (i18n.language !== 'en') await i18n.changeLanguage('en');
+});
 
 const grade = (bestScore: number, playedScore: number): MoveGrade => ({
   bestMove: { from: 'a1', to: 'a1' },

@@ -21,6 +21,24 @@ describe('i18n', () => {
     await i18n.changeLanguage('en');
   });
 
+  describe('Hebrew pluralization', () => {
+    afterEach(async () => {
+      await i18n.changeLanguage('en');
+    });
+
+    // CLDR Hebrew has a distinct "two" plural category (Intl.PluralRules('he').select(2) === 'two'),
+    // not just one/other — i18next looks up the `_two` suffix and, without it, silently falls through
+    // fallbackLng to the *English* `_other` string. This pins both call sites that hit it in normal use.
+    it('uses a dedicated form for count === 2, not the English fallback', async () => {
+      await i18n.changeLanguage('he');
+      const savedGames = t('online:savedGamesCount', { count: 2 });
+      expect(savedGames).not.toMatch(/[a-zA-Z]/); // no Latin letters — i.e. not an English fallback string
+
+      const reviewed = t('stats:gamesReviewed', { count: 2, moves: 10 });
+      expect(reviewed).not.toMatch(/reviewed|graded/);
+    });
+  });
+
   describe('boot-time locale sync', () => {
     // document.documentElement.dir is exercised live (Task 7's browser verification), not here — this
     // suite runs under Vitest's 'node' environment (see vitest.config.mts), which has no `document` at
