@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import type { Color, Level, PlayerKind } from '@/core/types';
 import { TIME_PRESETS, customTimeControl } from '@/features/clock/presets';
 import { useGameStore } from '@/features/game/gameStore';
@@ -31,6 +32,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export function NewGameMenu() {
+  const { t } = useTranslation();
   const startGame = useGameStore((s) => s.startGame);
   const showPuzzleMap = usePuzzleStore((s) => s.showMap);
   const { furthestStage, furthestPuzzleIndex } = usePuzzleProgressStore();
@@ -46,13 +48,13 @@ export function NewGameMenu() {
   const [customMinutes, setCustomMinutes] = useState(5);
   const [customIncrement, setCustomIncrement] = useState(0);
 
-  const timeOptions = [...TIME_PRESETS.map((t) => ({ value: t.name, label: t.name })), { value: CUSTOM, label: 'Custom' }];
+  const timeOptions = [...TIME_PRESETS.map((tc) => ({ value: tc.name, label: tc.name })), { value: CUSTOM, label: t('common:custom') }];
 
   const start = () => {
     const timeControl =
       preset === CUSTOM
         ? customTimeControl(clamp(customMinutes, 1, 180), clamp(customIncrement, 0, 60))
-        : TIME_PRESETS.find((t) => t.name === preset)!;
+        : TIME_PRESETS.find((tc) => tc.name === preset)!;
 
     if (mode === 'local') {
       startGame({ white: HUMAN, black: HUMAN, timeControl });
@@ -77,54 +79,54 @@ export function NewGameMenu() {
       >
         <header className={styles.header}>
           <span className={styles.logo}>♞</span>
-          <h1>B-Chess</h1>
-          <p>Choose how you want to play</p>
+          <h1>{t('common:appTitle')}</h1>
+          <p>{t('common:chooseMode')}</p>
         </header>
 
-        <Field label="Game mode">
+        <Field label={t('common:gameMode')}>
           <Segmented
             value={mode}
             onChange={setMode}
             options={[
-              { value: 'computer', label: 'vs Computer' },
-              { value: 'local', label: '2 Players (same PC)' },
+              { value: 'computer', label: t('common:vsComputer') },
+              { value: 'local', label: t('common:twoPlayers') },
             ]}
           />
         </Field>
 
         {mode === 'computer' && (
           <>
-            <Field label="Difficulty">
+            <Field label={t('common:difficulty')}>
               <Segmented
                 value={level}
                 onChange={setLevel}
                 options={[
-                  { value: 'easy', label: 'Easy' },
-                  { value: 'medium', label: 'Medium' },
-                  { value: 'hard', label: 'Hard' },
+                  { value: 'easy', label: t('common:easy') },
+                  { value: 'medium', label: t('common:medium') },
+                  { value: 'hard', label: t('common:hard') },
                 ]}
               />
             </Field>
-            <Field label="Play as">
+            <Field label={t('common:playAs')}>
               <Segmented
                 value={side}
                 onChange={setSide}
                 options={[
-                  { value: 'w', label: 'White' },
-                  { value: 'b', label: 'Black' },
-                  { value: 'random', label: 'Random' },
+                  { value: 'w', label: t('common:white') },
+                  { value: 'b', label: t('common:black') },
+                  { value: 'random', label: t('common:random') },
                 ]}
               />
             </Field>
           </>
         )}
 
-        <Field label="Time control">
+        <Field label={t('common:timeControl')}>
           <Segmented value={preset} onChange={setPreset} options={timeOptions} />
           {preset === CUSTOM && (
             <div className={styles.custom}>
               <label>
-                Minutes per side
+                {t('common:minutesPerSide')}
                 <input
                   type="number"
                   min={1}
@@ -134,7 +136,7 @@ export function NewGameMenu() {
                 />
               </label>
               <label>
-                Increment (sec)
+                {t('common:incrementSec')}
                 <input
                   type="number"
                   min={0}
@@ -148,27 +150,27 @@ export function NewGameMenu() {
         </Field>
 
         <button className={`btn btn-primary ${styles.start}`} onClick={start} autoFocus>
-          Start game
+          {t('common:startGame')}
         </button>
 
         <button className="btn" onClick={showPuzzleMap}>
-          🧩 Puzzles {puzzleProgress > 0 && `· ${puzzleProgress}%`}
+          {t('common:puzzles')} {puzzleProgress > 0 && `· ${puzzleProgress}%`}
         </button>
 
         <button className="btn" onClick={showOpeningExplorer}>
-          📖 Openings
+          {t('common:openings')}
         </button>
 
         <button className="btn" onClick={showWeaknessDashboard}>
-          📊 My Stats
+          {t('common:myStats')}
         </button>
 
         <button className="btn" onClick={showSavedGames}>
-          🗂️ Saved games
+          {t('common:savedGames')}
         </button>
 
         <button className="btn" onClick={showOnlineLobby}>
-          🌐 Play Online
+          {t('common:playOnline')}
         </button>
       </motion.div>
     </div>
