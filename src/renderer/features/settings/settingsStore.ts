@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type BoardTheme = 'classic' | 'green' | 'blue' | 'dark';
+export type Locale = 'en' | 'he' | 'es';
 
 export interface SettingsState {
   /** Highlight legal destination squares (blue borders) after selecting a piece. */
@@ -10,6 +11,7 @@ export interface SettingsState {
   /** Local 1v2 only: rotate the board to the side that is about to move. */
   autoFlip: boolean;
   boardTheme: BoardTheme;
+  locale: Locale;
   update(patch: Partial<Omit<SettingsState, 'update'>>): void;
 }
 
@@ -20,12 +22,19 @@ export const useSettingsStore = create<SettingsState>()(
       soundOn: true,
       autoFlip: false,
       boardTheme: 'classic',
+      locale: 'en',
       update: (patch) => set(patch),
     }),
     {
       name: 'b-chess-settings',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ showLegalMoves, soundOn, autoFlip, boardTheme }) => ({ showLegalMoves, soundOn, autoFlip, boardTheme }),
+      partialize: ({ showLegalMoves, soundOn, autoFlip, boardTheme, locale }) => ({
+        showLegalMoves,
+        soundOn,
+        autoFlip,
+        boardTheme,
+        locale,
+      }),
     },
   ),
 );

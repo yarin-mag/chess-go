@@ -1,4 +1,7 @@
-import { useSettingsStore, type BoardTheme } from '@/features/settings/settingsStore';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
+import { useSettingsStore, type BoardTheme, type Locale } from '@/features/settings/settingsStore';
 import { BOARD_THEMES } from '@/styles/themes';
 import { Modal } from './ui/Modal';
 import { Toggle } from './ui/Toggle';
@@ -9,48 +12,77 @@ interface Props {
   onClose: () => void;
 }
 
+const LANGUAGES: { value: Locale; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'he', label: 'עברית' },
+  { value: 'es', label: 'Español' },
+];
+
 export function SettingsPanel({ open, onClose }: Props) {
-  const { showLegalMoves, soundOn, autoFlip, boardTheme, update } = useSettingsStore();
+  const { t } = useTranslation();
+  const { showLegalMoves, soundOn, autoFlip, boardTheme, locale, update } = useSettingsStore();
+
+  // Keeps i18next's active language and the document's text direction in sync with the persisted
+  // setting — runs once per locale change, wherever it was triggered from (only this panel today).
+  useEffect(() => {
+    i18n.changeLanguage(locale);
+    document.documentElement.dir = locale === 'he' ? 'rtl' : 'ltr';
+  }, [locale]);
 
   return (
     <Modal open={open} onClose={onClose}>
       <div className={styles.content}>
-        <h2>Settings</h2>
+        <h2>{t('common:settingsTitle')}</h2>
         <Toggle
-          label="Show legal moves"
-          description="Outline where the selected piece can go in blue"
+          label={t('common:showLegalMoves')}
+          description={t('common:showLegalMovesDesc')}
           checked={showLegalMoves}
           onChange={(v) => update({ showLegalMoves: v })}
         />
-        <Toggle label="Sound effects" checked={soundOn} onChange={(v) => update({ soundOn: v })} />
+        <Toggle label={t('common:soundEffects')} checked={soundOn} onChange={(v) => update({ soundOn: v })} />
         <Toggle
-          label="Auto-flip board"
-          description="Local 2-player: turn the board to the side that moves next"
+          label={t('common:autoFlip')}
+          description={t('common:autoFlipDesc')}
           checked={autoFlip}
           onChange={(v) => update({ autoFlip: v })}
         />
         <div>
-          <p className={styles.heading}>Board theme</p>
+          <p className={styles.heading}>{t('common:boardTheme')}</p>
           <div className={styles.themes}>
             {(Object.keys(BOARD_THEMES) as BoardTheme[]).map((key) => {
-              const t = BOARD_THEMES[key];
+              const th = BOARD_THEMES[key];
               return (
                 <button
                   key={key}
                   className={`${styles.swatch} ${key === boardTheme ? styles.selected : ''}`}
                   onClick={() => update({ boardTheme: key })}
-                  aria-label={`${t.label} board`}
+                  aria-label={t('common:boardThemeAria', { theme: th.label })}
                   aria-pressed={key === boardTheme}
                 >
-                  <span className={styles.preview} style={{ background: `linear-gradient(135deg, ${t.light} 50%, ${t.dark} 50%)` }} />
-                  {t.label}
+                  <span className={styles.preview} style={{ background: `linear-gradient(135deg, ${th.light} 50%, ${th.dark} 50%)` }} />
+                  {th.label}
                 </button>
               );
             })}
           </div>
         </div>
+        <div>
+          <p className={styles.heading}>{t('common:language')}</p>
+          <div className={styles.themes}>
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.value}
+                className={`${styles.swatch} ${l.value === locale ? styles.selected : ''}`}
+                onClick={() => update({ locale: l.value })}
+                aria-pressed={l.value === locale}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <button className="btn btn-primary" onClick={onClose}>
-          Done
+          {t('common:done')}
         </button>
       </div>
     </Modal>

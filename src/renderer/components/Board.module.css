@@ -1,5 +1,8 @@
 .board {
   position: relative;
+  /* The board never mirrors under RTL (Hebrew) — only surrounding UI does. Board orientation is
+     controlled solely by the existing "⇅ Flip" feature (gameStore.flipped), never by locale. */
+  direction: ltr;
   width: var(--board-size);
   height: var(--board-size);
   /* Stays square even when its flex container runs short on space (e.g. the stacked mobile layout,
