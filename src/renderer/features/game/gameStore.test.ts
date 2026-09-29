@@ -16,6 +16,11 @@ vi.mock('@/engine/engineClient', () => ({
   }),
 }));
 
+vi.mock('@/features/vault/backgroundAnalysisQueue', () => ({
+  enqueueBackgroundAnalysis: vi.fn(),
+  abortBackgroundAnalysis: vi.fn(),
+}));
+
 const human = { type: 'human' } as const;
 const localConfig = (over: Partial<GameConfig> = {}): GameConfig => ({
   white: human,

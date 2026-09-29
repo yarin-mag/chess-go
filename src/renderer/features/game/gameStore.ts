@@ -14,6 +14,7 @@ import {
 import { Clock } from '@/features/clock/clock';
 import { UNTIMED, toClock } from '@/features/clock/presets';
 import { useSavedGamesStore } from '@/features/history/savedGamesStore';
+import { abortBackgroundAnalysis, enqueueBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
 import { requestMoveHint } from '@/engine/engineClient';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { createPlayer, type PlayerController } from './players';
@@ -103,8 +104,11 @@ export const useGameStore = create<GameState>((set, get) => {
   const finish = (result: GameResult, now: number) => {
     abortEngine();
     get().clock.stop(now);
-    const { config, history } = get();
-    if (history.length > 0) useSavedGamesStore.getState().saveGame(config, history, result);
+    const { config, history, gameId } = get();
+    if (history.length > 0) {
+      useSavedGamesStore.getState().saveGame(config, history, result);
+      enqueueBackgroundAnalysis({ sourceGameId: String(gameId), fen: config.fen, history });
+    }
     set({ status: 'over', result, engineThinking: false, ...noSelection });
   };
 
@@ -159,6 +163,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
     startGame(config) {
       abortEngine();
+      abortBackgroundAnalysis();
       const game = new ChessGame(config.fen);
       const clock = toClock(config.timeControl);
       clock.start(game.turn(), Date.now());

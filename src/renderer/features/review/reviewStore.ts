@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { GameConfig } from '@/features/game/gameStore';
 import type { MoveRecord } from '@/core/types';
 import { useGameHistoryStore } from '@/features/history/gameHistoryStore';
+import { abortBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
 import { analyzeGame, type MoveAnalysis } from './analyzeGame';
 
 interface StartOptions {
@@ -34,6 +35,7 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   index: -1,
 
   start(config, history, options = {}) {
+    abortBackgroundAnalysis();
     const recordStats = options.recordStats ?? true;
     abortController?.abort();
     const controller = new AbortController();
