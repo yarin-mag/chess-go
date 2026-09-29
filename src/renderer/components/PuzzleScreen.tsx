@@ -48,6 +48,7 @@ export function PuzzleScreen({ onExit }: Props) {
         <div className={styles.panel}>
           <p className={styles.stage}>
             {mode === 'daily' && t('puzzles:dailyPuzzle')}
+            {mode === 'vault' && t('puzzles:vaultLabel')}
             {mode === 'ladder' &&
               t('puzzles:stageProgress', { stage: stage + 1, total: STAGE_COUNT, puzzle: puzzleIndex + 1, size: stageSize })}
             {mode === 'rush' && status !== 'rushOver' && (

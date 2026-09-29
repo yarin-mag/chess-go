@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { usePuzzleProgressStore } from '@/features/puzzle/puzzleProgressStore';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 import { overallProgress, STAGE_COUNT, totalStagePuzzleCount } from '@/features/puzzle/puzzles';
+import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
 import styles from './PuzzleMapScreen.module.css';
 
 interface Props {
@@ -11,7 +12,8 @@ interface Props {
 export function PuzzleMapScreen({ onExit }: Props) {
   const { t } = useTranslation();
   const { furthestStage, furthestPuzzleIndex, currentStreak, longestStreak, solvedCount, rushBest } = usePuzzleProgressStore();
-  const { start, startDaily, startRush } = usePuzzleStore();
+  const { start, startDaily, startRush, startVault } = usePuzzleStore();
+  const vaultCount = useBlunderVaultStore((s) => s.entries.length);
   const overall = overallProgress(furthestStage, furthestPuzzleIndex);
 
   return (
@@ -43,6 +45,14 @@ export function PuzzleMapScreen({ onExit }: Props) {
               {rushBest['5'] > 0 && t('puzzles:rushBestSuffix', { best: rushBest['5'] })}
             </button>
           </div>
+
+          {vaultCount > 0 ? (
+            <button className="btn" onClick={startVault}>
+              {t('puzzles:myMistakes')}
+            </button>
+          ) : (
+            <p className={styles.streak}>{t('puzzles:myMistakesEmpty')}</p>
+          )}
         </header>
 
         <ol className={styles.stages}>

@@ -7,8 +7,10 @@ import { classify, type Tier } from '@/engine/classify';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { usePuzzleProgressStore, type RushDuration } from './puzzleProgressStore';
 import { allPuzzles, dailyPuzzle, puzzlesForStage, shuffled, totalStagePuzzleCount, type PuzzleData } from './puzzles';
+import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
+import { toPuzzleData } from '@/features/vault/vaultPuzzle';
 
-type PuzzleMode = 'ladder' | 'daily' | 'rush';
+type PuzzleMode = 'ladder' | 'daily' | 'rush' | 'vault';
 type PuzzleStatus = 'idle' | 'map' | 'playing' | 'wrong' | 'solved' | 'rushOver';
 
 export interface WrongMoveFeedback {
@@ -56,6 +58,7 @@ interface PuzzleState {
   start(stage: number, puzzleIndex: number): void;
   startDaily(): void;
   startRush(duration: RushDuration): void;
+  startVault(): void;
   select(sq: Square): Promise<void>;
   showHint(): void;
   showMap(): void;
@@ -145,6 +148,12 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
       load(dailyPuzzle(), -1, -1, 'daily');
     },
 
+    startVault() {
+      const entry = useBlunderVaultStore.getState().pickNext();
+      if (!entry) return;
+      load(toPuzzleData(entry), -1, -1, 'vault');
+    },
+
     startRush(duration) {
       const queue = shuffled(allPuzzles());
       set({
@@ -195,6 +204,8 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
           set({ status: 'solved' });
           if (mode === 'daily') {
             usePuzzleProgressStore.getState().recordDailySolve();
+          } else if (mode === 'vault') {
+            useBlunderVaultStore.getState().markSolved(puzzle!.id);
           } else {
             const size = totalStagePuzzleCount(get().stage);
             const solvedAt = get().puzzleIndex;

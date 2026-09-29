@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { usePuzzleStore } from './puzzleStore';
 import { usePuzzleProgressStore } from './puzzleProgressStore';
 import { puzzlesForStage } from './puzzles';
+import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
 
 vi.mock('@/engine/engineClient', () => ({
   requestMoveGrade: vi.fn(async (fen: string, move: { from: string; to: string; promotion?: string }) => {
@@ -211,5 +212,43 @@ describe('puzzleStore', () => {
       usePuzzleStore.getState().showHint();
       expect(usePuzzleStore.getState().hint).toBeNull();
     });
+  });
+});
+
+describe('startVault', () => {
+  it('loads a vault entry as a single-move puzzle', () => {
+    useBlunderVaultStore.setState({
+      entries: [{
+        id: 'g1-4', sourceGameId: 'g1', ply: 4,
+        fenBefore: '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1',
+        bestMove: { from: 'a1', to: 'a8' }, bestSan: 'Ra8#', playedSan: 'Kd2',
+        tier: 'blunder', tags: ['missedMate'], capturedAt: '2026-09-30T00:00:00.000Z',
+      }],
+      solvedIds: [],
+    });
+    usePuzzleStore.getState().startVault();
+    const state = usePuzzleStore.getState();
+    expect(state.status).toBe('playing');
+    expect(state.mode).toBe('vault');
+    expect(state.puzzle?.id).toBe('g1-4');
+  });
+
+  it('marks the vault entry solved on a correct guess and does not chain to another vault puzzle', async () => {
+    useBlunderVaultStore.setState({
+      entries: [{
+        id: 'g1-4', sourceGameId: 'g1', ply: 4,
+        fenBefore: '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1',
+        bestMove: { from: 'a1', to: 'a8' }, bestSan: 'Ra8#', playedSan: 'Kd2',
+        tier: 'blunder', tags: ['missedMate'], capturedAt: '2026-09-30T00:00:00.000Z',
+      }],
+      solvedIds: [],
+    });
+    usePuzzleStore.getState().startVault();
+    await usePuzzleStore.getState().select('a1');
+    await usePuzzleStore.getState().select('a8');
+    expect(usePuzzleStore.getState().status).toBe('solved');
+    expect(useBlunderVaultStore.getState().solvedIds).toContain('g1-4');
+    usePuzzleStore.getState().next();
+    expect(usePuzzleStore.getState().status).toBe('map'); // showMap(), same as daily/rush today
   });
 });
