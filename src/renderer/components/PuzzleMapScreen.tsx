@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { usePuzzleProgressStore } from '@/features/puzzle/puzzleProgressStore';
 import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
 import { overallProgress, STAGE_COUNT, totalStagePuzzleCount } from '@/features/puzzle/puzzles';
@@ -7,18 +8,8 @@ interface Props {
   onExit: () => void;
 }
 
-const STAGE_THEME_LABEL = [
-  'Mate in 1',
-  'Hanging pieces',
-  'Forks',
-  'Pins & skewers',
-  'Discovered attacks',
-  'Trapped pieces',
-  'Back-rank mates',
-  'Mate in 2',
-];
-
 export function PuzzleMapScreen({ onExit }: Props) {
+  const { t } = useTranslation();
   const { furthestStage, furthestPuzzleIndex, currentStreak, longestStreak, solvedCount, rushBest } = usePuzzleProgressStore();
   const { start, startDaily, startRush } = usePuzzleStore();
   const overall = overallProgress(furthestStage, furthestPuzzleIndex);
@@ -27,28 +18,29 @@ export function PuzzleMapScreen({ onExit }: Props) {
     <div className={styles.screen}>
       <div className={styles.card}>
         <header className={styles.header}>
-          <h1>Puzzle Roadmap</h1>
-          <p>
-            {overall}% of the way through {STAGE_COUNT} stages · {solvedCount} solved
-          </p>
+          <h1>{t('puzzles:puzzleRoadmap')}</h1>
+          <p>{t('puzzles:progressSummary', { percent: overall, stages: STAGE_COUNT, solved: solvedCount })}</p>
           <div className={styles.overallTrack}>
             <div className={styles.overallFill} style={{ width: `${overall}%` }} />
           </div>
           {currentStreak > 0 && (
             <p className={styles.streak}>
-              🔥 {currentStreak}-day streak{longestStreak > currentStreak && ` · best ${longestStreak}`}
+              {t('puzzles:streak', { count: currentStreak })}
+              {longestStreak > currentStreak && t('puzzles:streakBest', { best: longestStreak })}
             </p>
           )}
           <button className={`btn btn-primary ${styles.dailyButton}`} onClick={startDaily}>
-            ⭐ Daily Puzzle
+            {t('puzzles:dailyPuzzle')}
           </button>
 
           <div className={styles.rushRow}>
             <button className="btn" onClick={() => startRush('3')}>
-              ⚡ Rush 3 min{rushBest['3'] > 0 && ` · best ${rushBest['3']}`}
+              {t('puzzles:rush3')}
+              {rushBest['3'] > 0 && t('puzzles:rushBestSuffix', { best: rushBest['3'] })}
             </button>
             <button className="btn" onClick={() => startRush('5')}>
-              ⚡ Rush 5 min{rushBest['5'] > 0 && ` · best ${rushBest['5']}`}
+              {t('puzzles:rush5')}
+              {rushBest['5'] > 0 && t('puzzles:rushBestSuffix', { best: rushBest['5'] })}
             </button>
           </div>
         </header>
@@ -69,10 +61,10 @@ export function PuzzleMapScreen({ onExit }: Props) {
                 >
                   <span className={styles.stageNumber}>{stage + 1}</span>
                   <span className={styles.stageInfo}>
-                    <span className={styles.stageName}>{STAGE_THEME_LABEL[stage] ?? `Stage ${stage + 1}`}</span>
-                    <span className={styles.stageCount}>
-                      {reached} / {size} solved
+                    <span className={styles.stageName}>
+                      {t(`puzzles:stage_${stage}`, { defaultValue: t('puzzles:stageFallback', { n: stage + 1 }) })}
                     </span>
+                    <span className={styles.stageCount}>{t('puzzles:solvedOfSize', { reached, size })}</span>
                     <div className={styles.stageTrack}>
                       <div className={styles.stageFill} style={{ width: `${percent}%` }} />
                     </div>
@@ -84,7 +76,7 @@ export function PuzzleMapScreen({ onExit }: Props) {
         </ol>
 
         <button className="btn" onClick={onExit}>
-          ☰ Menu
+          {t('common:menu')}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { replayUci } from '@/core/replay';
 import type { Color, Level, PlayerKind } from '@/core/types';
 import { UNTIMED } from '@/features/clock/presets';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function OpeningExplorerScreen({ onExit }: Props) {
+  const { t } = useTranslation();
   const startReview = useReviewStore((s) => s.start);
   const startGame = useGameStore((s) => s.startGame);
   const hideExplorer = useOpeningExplorerStore((s) => s.hide);
@@ -45,31 +47,31 @@ export function OpeningExplorerScreen({ onExit }: Props) {
     <div className={styles.screen}>
       <div className={styles.card}>
         <header className={styles.header}>
-          <h1>Opening Explorer</h1>
-          <p>Watch how a named opening unfolds, move by move, with real engine commentary — or jump into practicing it yourself.</p>
+          <h1>{t('puzzles:openingExplorerTitle')}</h1>
+          <p>{t('puzzles:openingExplorerSubtitle')}</p>
         </header>
 
         <div className={styles.practiceSettings}>
           <div>
-            <p className={styles.settingLabel}>Practice as</p>
+            <p className={styles.settingLabel}>{t('puzzles:practiceAs')}</p>
             <Segmented
               value={side}
               onChange={setSide}
               options={[
-                { value: 'w', label: 'White' },
-                { value: 'b', label: 'Black' },
+                { value: 'w', label: t('common:white') },
+                { value: 'b', label: t('common:black') },
               ]}
             />
           </div>
           <div>
-            <p className={styles.settingLabel}>Computer level</p>
+            <p className={styles.settingLabel}>{t('puzzles:computerLevel')}</p>
             <Segmented
               value={level}
               onChange={setLevel}
               options={[
-                { value: 'easy', label: 'Easy' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'hard', label: 'Hard' },
+                { value: 'easy', label: t('common:easy') },
+                { value: 'medium', label: t('common:medium') },
+                { value: 'hard', label: t('common:hard') },
               ]}
             />
           </div>
@@ -83,10 +85,10 @@ export function OpeningExplorerScreen({ onExit }: Props) {
               </span>
               <div className={styles.rowActions}>
                 <button className="btn" onClick={() => watch(opening)}>
-                  ▶ Watch
+                  {t('puzzles:watch')}
                 </button>
                 <button className="btn btn-primary" onClick={() => practice(opening)}>
-                  ⚔ Practice
+                  {t('puzzles:practice')}
                 </button>
               </div>
             </li>
@@ -94,7 +96,7 @@ export function OpeningExplorerScreen({ onExit }: Props) {
         </ol>
 
         <button className="btn" onClick={onExit}>
-          ☰ Menu
+          {t('common:menu')}
         </button>
       </div>
     </div>

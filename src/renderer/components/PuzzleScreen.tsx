@@ -47,17 +47,18 @@ export function PuzzleScreen({ onExit }: Props) {
       <aside className={styles.sidebar}>
         <div className={styles.panel}>
           <p className={styles.stage}>
-            {mode === 'daily' && '⭐ Daily Puzzle'}
-            {mode === 'ladder' && `Stage ${stage + 1} of ${STAGE_COUNT} · Puzzle ${puzzleIndex + 1} of ${stageSize}`}
+            {mode === 'daily' && t('puzzles:dailyPuzzle')}
+            {mode === 'ladder' &&
+              t('puzzles:stageProgress', { stage: stage + 1, total: STAGE_COUNT, puzzle: puzzleIndex + 1, size: stageSize })}
             {mode === 'rush' && status !== 'rushOver' && (
               <span className={styles.rushBar}>
-                <span>⚡ {formatRushTime(rushRemainingMs)}</span>
-                <span>{rushSolvedCount} solved</span>
+                <span>{t('puzzles:rushTimer', { time: formatRushTime(rushRemainingMs) })}</span>
+                <span>{t('puzzles:rushSolvedCount', { count: rushSolvedCount })}</span>
               </span>
             )}
           </p>
           {status !== 'rushOver' && (
-            <p className={styles.instruction}>Find the best move for {colorName(solverColor)}.</p>
+            <p className={styles.instruction}>{t('puzzles:findBestMove', { color: colorName(solverColor) })}</p>
           )}
 
           {status === 'playing' && mode !== 'rush' && (
@@ -66,7 +67,7 @@ export function PuzzleScreen({ onExit }: Props) {
                 <p className={styles.hintText}>💡 {hint.text}</p>
               ) : (
                 <button className="btn" onClick={showHint}>
-                  💡 Ask for help
+                  {t('puzzles:askForHelp')}
                 </button>
               )}
             </div>
@@ -77,35 +78,38 @@ export function PuzzleScreen({ onExit }: Props) {
               <span className={`${styles.tier} ${styles[feedback.tier]}`}>{t(`stats:tier_${feedback.tier}`)}</span>
               <p>{feedback.tags.map((tag, i) => phraseFor(tag, feedback.tier, feedback.move.san, i)).join(' ')}</p>
               <button className="btn btn-primary" onClick={retry}>
-                Try again
+                {t('puzzles:tryAgain')}
               </button>
             </div>
           )}
 
           {status === 'solved' && (
             <div className={styles.feedback}>
-              <p className={styles.solved}>Solved!</p>
+              <p className={styles.solved}>{t('puzzles:solved')}</p>
               <button className="btn btn-primary" onClick={next}>
-                {mode === 'daily' ? 'Back to map →' : 'Next puzzle →'}
+                {mode === 'daily' ? t('puzzles:backToMapArrow') : t('puzzles:nextPuzzleArrow')}
               </button>
             </div>
           )}
 
           {status === 'rushOver' && rushResult && (
             <div className={styles.feedback}>
-              <p className={styles.solved}>{rushResult.reason === 'timeUp' ? "Time's up!" : 'Run over'}</p>
+              <p className={styles.solved}>{rushResult.reason === 'timeUp' ? t('puzzles:timeUp') : t('puzzles:runOver')}</p>
               {feedback && rushResult.reason === 'wrong' && (
                 <p>{feedback.tags.map((tag, i) => phraseFor(tag, feedback.tier, feedback.move.san, i)).join(' ')}</p>
               )}
               <p className={styles.rushScore}>
-                {rushResult.score} solved{rushResult.isNewBest && ' — New best!'}
+                {t('puzzles:scoreLine', {
+                  score: rushResult.score,
+                  newBest: rushResult.isNewBest ? t('puzzles:newBestSuffix') : '',
+                })}
               </p>
               <div className={styles.actions}>
                 <button className="btn btn-primary" onClick={() => startRush(usePuzzleStore.getState().rushDuration!)}>
-                  Play again
+                  {t('puzzles:playAgain')}
                 </button>
                 <button className="btn" onClick={showMap}>
-                  Back to map
+                  {t('puzzles:backToMap')}
                 </button>
               </div>
             </div>
@@ -114,10 +118,10 @@ export function PuzzleScreen({ onExit }: Props) {
 
         <div className={styles.actions}>
           <button className="btn" onClick={showMap}>
-            🗺 Map
+            {t('common:map')}
           </button>
           <button className="btn" onClick={onExit}>
-            ☰ Menu
+            {t('common:menu')}
           </button>
         </div>
       </aside>
