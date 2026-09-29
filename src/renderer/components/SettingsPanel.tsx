@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
 import { useSettingsStore, type BoardTheme, type Locale } from '@/features/settings/settingsStore';
 import { BOARD_THEMES } from '@/styles/themes';
 import { Modal } from './ui/Modal';
@@ -21,13 +19,9 @@ const LANGUAGES: { value: Locale; label: string }[] = [
 export function SettingsPanel({ open, onClose }: Props) {
   const { t } = useTranslation();
   const { showLegalMoves, soundOn, autoFlip, boardTheme, locale, update } = useSettingsStore();
-
-  // Keeps i18next's active language and the document's text direction in sync with the persisted
-  // setting — runs once per locale change, wherever it was triggered from (only this panel today).
-  useEffect(() => {
-    i18n.changeLanguage(locale);
-    document.documentElement.dir = locale === 'he' ? 'rtl' : 'ltr';
-  }, [locale]);
+  // i18next's active language and the document's text direction sync from settingsStore.locale in
+  // src/renderer/i18n/index.ts (a store subscription there), not here — that way it also applies at
+  // boot, before this panel ever mounts.
 
   return (
     <Modal open={open} onClose={onClose}>

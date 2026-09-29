@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import i18n, { t } from './index';
 
 describe('i18n', () => {
@@ -19,5 +19,29 @@ describe('i18n', () => {
     // case isn't reachable once all three files are complete, so we assert the mechanism via config.
     expect(i18n.options.fallbackLng).toEqual(['en']);
     await i18n.changeLanguage('en');
+  });
+
+  describe('boot-time locale sync', () => {
+    // document.documentElement.dir is exercised live (Task 7's browser verification), not here — this
+    // suite runs under Vitest's 'node' environment (see vitest.config.mts), which has no `document` at
+    // all; i18n/index.ts's boot sync guards that access accordingly (same pattern as test/setup.ts's
+    // localStorage polyfill note).
+    afterEach(() => {
+      localStorage.removeItem('b-chess-settings');
+    });
+
+    it('applies a persisted locale before anything renders, not just on Settings mount', async () => {
+      localStorage.setItem('b-chess-settings', JSON.stringify({ state: { locale: 'he' }, version: 0 }));
+      vi.resetModules();
+      const { default: freshI18n } = await import('./index');
+      expect(freshI18n.language).toBe('he');
+    });
+
+    it('applies a persisted non-RTL locale the same way', async () => {
+      localStorage.setItem('b-chess-settings', JSON.stringify({ state: { locale: 'es' }, version: 0 }));
+      vi.resetModules();
+      const { default: freshI18n } = await import('./index');
+      expect(freshI18n.language).toBe('es');
+    });
   });
 });
