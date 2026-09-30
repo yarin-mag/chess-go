@@ -1,4 +1,5 @@
 import { GameScreen } from './components/GameScreen';
+import { GlossaryScreen } from './components/GlossaryScreen';
 import { NewGameMenu } from './components/NewGameMenu';
 import { OnlineLobbyScreen } from './components/OnlineLobbyScreen';
 import { OpeningExplorerScreen } from './components/OpeningExplorerScreen';
@@ -8,6 +9,7 @@ import { ReviewScreen } from './components/ReviewScreen';
 import { SavedGamesScreen } from './components/SavedGamesScreen';
 import { WeaknessDashboardScreen } from './components/WeaknessDashboardScreen';
 import { useGameStore } from './features/game/gameStore';
+import { useGlossaryVisibilityStore } from './features/glossary/glossaryVisibilityStore';
 import { useOpeningExplorerStore } from './features/openings/openingExplorerStore';
 import { useOnlineLobbyStore } from './features/online/onlineLobbyVisibilityStore';
 import { useSavedGamesVisibilityStore } from './features/history/savedGamesVisibilityStore';
@@ -21,6 +23,7 @@ export function App() {
   const exploringOpenings = useOpeningExplorerStore((s) => s.visible);
   const viewingStats = useWeaknessDashboardStore((s) => s.visible);
   const viewingSavedGames = useSavedGamesVisibilityStore((s) => s.visible);
+  const viewingGlossary = useGlossaryVisibilityStore((s) => s.visible);
   const lobbyVisible = useOnlineLobbyStore((s) => s.visible);
   const gameStatus = useGameStore((s) => s.status);
   const inMenu = gameStatus === 'menu';
@@ -33,6 +36,7 @@ export function App() {
   const hideOpeningExplorer = useOpeningExplorerStore((s) => s.hide);
   const hideWeaknessDashboard = useWeaknessDashboardStore((s) => s.hide);
   const hideSavedGames = useSavedGamesVisibilityStore((s) => s.hide);
+  const hideGlossary = useGlossaryVisibilityStore((s) => s.hide);
   const hideOnlineLobby = useOnlineLobbyStore((s) => s.hide);
 
   if (reviewing) return <ReviewScreen />;
@@ -41,6 +45,7 @@ export function App() {
   if (exploringOpenings) return <OpeningExplorerScreen onExit={hideOpeningExplorer} />;
   if (viewingStats) return <WeaknessDashboardScreen onExit={hideWeaknessDashboard} />;
   if (viewingSavedGames) return <SavedGamesScreen onExit={hideSavedGames} />;
+  if (viewingGlossary) return <GlossaryScreen onExit={hideGlossary} />;
   if (showingOnlineLobby) return <OnlineLobbyScreen onExit={hideOnlineLobby} />;
   return inMenu ? <NewGameMenu /> : <GameScreen />;
 }

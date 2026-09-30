@@ -12,6 +12,8 @@
   "savedGames": "🗂️ משחקים שמורים",
   "playOnline": "🌐 שחק אונליין",
   "glossary": "📚 מילון מונחים",
+  "glossarySearch": "חפש מונחים…",
+  "glossaryEmpty": "לא נמצאו מונחים תואמים.",
   "appTitle": "B-Chess",
   "chooseMode": "בחר כיצד תרצה לשחק",
   "gameMode": "מצב משחק",

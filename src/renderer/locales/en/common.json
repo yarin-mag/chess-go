@@ -12,6 +12,8 @@
   "savedGames": "🗂️ Saved games",
   "playOnline": "🌐 Play Online",
   "glossary": "📚 Glossary",
+  "glossarySearch": "Search terms…",
+  "glossaryEmpty": "No terms match.",
   "appTitle": "B-Chess",
   "chooseMode": "Choose how you want to play",
   "gameMode": "Game mode",

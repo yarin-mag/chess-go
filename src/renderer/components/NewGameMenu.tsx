@@ -11,6 +11,7 @@ import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStor
 import { useWeaknessDashboardStore } from '@/features/history/weaknessDashboardStore';
 import { useSavedGamesVisibilityStore } from '@/features/history/savedGamesVisibilityStore';
 import { useOnlineLobbyStore } from '@/features/online/onlineLobbyVisibilityStore';
+import { useGlossaryVisibilityStore } from '@/features/glossary/glossaryVisibilityStore';
 import { Segmented } from './ui/Segmented';
 import styles from './NewGameMenu.module.css';
 
@@ -41,6 +42,7 @@ export function NewGameMenu() {
   const showWeaknessDashboard = useWeaknessDashboardStore((s) => s.show);
   const showSavedGames = useSavedGamesVisibilityStore((s) => s.show);
   const showOnlineLobby = useOnlineLobbyStore((s) => s.show);
+  const showGlossary = useGlossaryVisibilityStore((s) => s.show);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -171,6 +173,10 @@ export function NewGameMenu() {
 
         <button className="btn" onClick={showOnlineLobby}>
           {t('common:playOnline')}
+        </button>
+
+        <button className="btn" onClick={showGlossary}>
+          {t('common:glossary')}
         </button>
       </motion.div>
     </div>

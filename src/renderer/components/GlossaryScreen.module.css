@@ -1,0 +1,53 @@
+.screen {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.search {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel-raised);
+  color: var(--text);
+  font: inherit;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.entry {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel-raised);
+}
+
+.term {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.definition {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 20px 0;
+}
