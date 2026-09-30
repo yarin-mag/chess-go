@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { describeMove, describePotentialMove } from '@/core/describeMove';
+import { summarizeGame } from '@/features/review/summarizeGame';
 import { useReviewStore } from '@/features/review/reviewStore';
 import { phraseFor, reasonFor } from '@/engine/explain';
 import { EvalBar } from './EvalBar';
@@ -29,6 +30,7 @@ export function TutorPanel() {
   const { analysis, index, status, progress, goTo, history } = useReviewStore();
   const current = index >= 0 ? analysis[index] : null;
   const [reasonOpen, setReasonOpen] = useState(false);
+  const summary = useMemo(() => (status === 'ready' ? summarizeGame(analysis) : []), [status, analysis]);
 
   if (status === 'analyzing') {
     const percent = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
@@ -49,6 +51,13 @@ export function TutorPanel() {
 
   return (
     <div className={styles.panel}>
+      {summary.length > 0 && (
+        <div className={styles.summary}>
+          {summary.map((s, i) => (
+            <p key={i}>{s}</p>
+          ))}
+        </div>
+      )}
       <div className={styles.header}>
         <span className={styles.moveNumber}>{index >= 0 ? t('tutor:moveNumber', { n: index + 1 }) : t('tutor:startPosition')}</span>
         {current && <span className={`${styles.tier} ${styles[current.tier]}`}>{t(`stats:tier_${current.tier}`)}</span>}

@@ -12,6 +12,17 @@
   overflow-y: auto;
 }
 
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel-raised);
+  color: var(--text);
+  font-size: 14px;
+}
+
 .header {
   display: flex;
   align-items: center;
