@@ -13,7 +13,7 @@ function app() {
 }
 
 const auth = { authorization: 'Bearer tok' };
-const validItem = { localId: 'a', kind: 'vsComputer', transcript: { moves: [] }, playedAt: '2026-09-30T00:00:00.000Z', localSeq: 1 };
+const validItem = { localId: 'a', accountId: 'acct-1', kind: 'vsComputer', transcript: { moves: [] }, playedAt: '2026-09-30T00:00:00.000Z', localSeq: 1 };
 
 describe('POST /sync/offline-results', () => {
   it('returns 401 with no bearer token', async () => {
@@ -45,5 +45,20 @@ describe('POST /sync/offline-results', () => {
       { localId: 'a', status: 'accepted' },
       { localId: 'b', status: 'rejected', reason: 'malformed item' },
     ]);
+  });
+
+  // Important finding (final whole-branch review): the wire contract reserves 'account_invalid' for
+  // exactly this case — an item stamped with an accountId that isn't this session's real account
+  // (e.g. a shared device that switched signed-in users without ever draining the previous queue).
+  it('rejects an item whose accountId does not match this session\'s real account', async () => {
+    const wrongAccount = { ...validItem, localId: 'c', accountId: 'acct-someone-else' };
+    const res = await app().inject({
+      method: 'POST',
+      url: '/sync/offline-results',
+      headers: auth,
+      payload: { items: [wrongAccount] },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().results).toEqual([{ localId: 'c', status: 'rejected', reason: 'account_invalid' }]);
   });
 });

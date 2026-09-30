@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { addItem, type QueuedItem } from './offlineQueueDB';
+import { useAuthStore } from '@/features/auth/authStore';
 
 interface OfflineQueueMetaState {
   /** The next localSeq to assign — persisted separately from the queue items themselves (in
@@ -23,14 +24,26 @@ export async function enqueueOfflineResult(input: {
   kind: QueuedItem['kind'];
   transcript: unknown;
 }): Promise<void> {
+  // Stamped from the store, not passed in — every caller already gates on status === 'signedIn'
+  // before calling this, but re-deriving it here (rather than trusting a caller-supplied value) is
+  // what lets the server later catch a shared device that switched signed-in users without ever
+  // draining the previous user's queue (Important finding, final whole-branch review).
+  const accountId = useAuthStore.getState().accountId;
+  if (!accountId) return;
+
   const localSeq = useOfflineQueueStore.getState().nextLocalSeq;
   useOfflineQueueStore.setState({ nextLocalSeq: localSeq + 1 });
   const item: QueuedItem = {
     localId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    accountId,
     kind: input.kind,
     transcript: input.transcript,
     playedAt: new Date().toISOString(),
     localSeq,
   };
-  await addItem(item);
+  // Genuinely never throws (the doc comment's promise) — a caller that `void`s this, as gameStore and
+  // puzzleProgressStore both do, would otherwise leave an unhandled rejection on any IndexedDB failure.
+  await addItem(item).catch((err) => {
+    console.error('Failed to queue offline result; it will not be synced', err);
+  });
 }

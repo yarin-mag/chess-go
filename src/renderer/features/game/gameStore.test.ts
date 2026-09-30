@@ -98,13 +98,11 @@ describe('gameStore', () => {
     expect(state().result).toEqual({ kind: 'checkmate', winner: 'b' });
   });
 
-  it('enqueues an offline-sync record for the finished game when signed in', () => {
+  it('enqueues an offline-sync record for a finished vs-computer game when signed in', () => {
     useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
-    state().startGame(localConfig());
-    play('f2', 'f3');
-    play('e7', 'e5');
-    play('g2', 'g4');
-    play('d8', 'h4'); // checkmate
+    state().startGame(localConfig({ black: { type: 'engine', level: 'easy' } }));
+    play('e2', 'e4');
+    state().resign('w');
     expect(enqueueOfflineResult).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'vsComputer' }),
     );
@@ -112,11 +110,42 @@ describe('gameStore', () => {
 
   it('does not enqueue anything when signed out', () => {
     useAuthStore.setState({ status: 'signedOut', accountId: null, clerkUserId: null, hasEverAuthenticated: false });
-    state().startGame(localConfig());
+    state().startGame(localConfig({ black: { type: 'engine', level: 'easy' } }));
+    play('e2', 'e4');
+    state().resign('w');
+    expect(enqueueOfflineResult).not.toHaveBeenCalled();
+  });
+
+  // Important finding (final whole-branch review): finish() used to enqueue EVERY finished game —
+  // including a same-device hotseat game — as kind 'vsComputer'. That's a trivial coin-farming vector
+  // once sub-project 2 credits coins for vs-computer wins (two humans trading a scholar's-mate loop).
+  it('does not enqueue a hotseat human-vs-human game, even when signed in', () => {
+    useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
+    state().startGame(localConfig()); // both seats 'human' — local hotseat, not vs-computer
     play('f2', 'f3');
     play('e7', 'e5');
     play('g2', 'g4');
-    play('d8', 'h4');
+    play('d8', 'h4'); // checkmate
+    expect(enqueueOfflineResult).not.toHaveBeenCalled();
+  });
+
+  // Important finding: an online game's config carries a live PlayerController (a function) in
+  // `config.remote`. The old code spread the whole config into the transcript and always used kind
+  // 'vsComputer', which for an online game would also reach IndexedDB's structured-clone `add()` and
+  // throw DataCloneError — silently, since the caller `void`s the promise. Online results are sub-project
+  // 5's problem (server-arbitrated wagering); this sub-project must not touch them at all.
+  it('does not enqueue and does not throw for a finished online (remote) game, even when signed in', async () => {
+    useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
+    const remotePlayer = { kind: 'remote' as const, requestMove: vi.fn(() => new Promise<never>(() => {})) };
+    state().startGame({
+      white: { type: 'human' },
+      black: { type: 'remote' },
+      timeControl: UNTIMED,
+      remote: { color: 'b', player: remotePlayer },
+    });
+    play('e2', 'e4');
+    state().handleDisconnect('w');
+    expect(state().result).toEqual({ kind: 'disconnected', winner: 'w' });
     expect(enqueueOfflineResult).not.toHaveBeenCalled();
   });
 

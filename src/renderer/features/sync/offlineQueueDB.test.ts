@@ -8,21 +8,21 @@ beforeEach(async () => {
 
 describe('offlineQueueDB', () => {
   it('adds and lists items in insertion order', async () => {
-    await addItem({ localId: 'a', kind: 'vsComputer', transcript: {}, playedAt: 't1', localSeq: 1 });
-    await addItem({ localId: 'b', kind: 'vsComputer', transcript: {}, playedAt: 't2', localSeq: 2 });
+    await addItem({ localId: 'a', accountId: 'acct-1', kind: 'vsComputer', transcript: {}, playedAt: 't1', localSeq: 1 });
+    await addItem({ localId: 'b', accountId: 'acct-1', kind: 'vsComputer', transcript: {}, playedAt: 't2', localSeq: 2 });
     const items = await listItems();
     expect(items.map((i) => i.localId)).toEqual(['a', 'b']);
   });
 
   it('deletes a specific item by localId', async () => {
-    await addItem({ localId: 'a', kind: 'vsComputer', transcript: {}, playedAt: 't1', localSeq: 1 });
-    await addItem({ localId: 'b', kind: 'vsComputer', transcript: {}, playedAt: 't2', localSeq: 2 });
+    await addItem({ localId: 'a', accountId: 'acct-1', kind: 'vsComputer', transcript: {}, playedAt: 't1', localSeq: 1 });
+    await addItem({ localId: 'b', accountId: 'acct-1', kind: 'vsComputer', transcript: {}, playedAt: 't2', localSeq: 2 });
     await deleteItem('a');
     expect((await listItems()).map((i) => i.localId)).toEqual(['b']);
   });
 
   it('clearAll empties the queue', async () => {
-    await addItem({ localId: 'a', kind: 'vsComputer', transcript: {}, playedAt: 't1', localSeq: 1 });
+    await addItem({ localId: 'a', accountId: 'acct-1', kind: 'vsComputer', transcript: {}, playedAt: 't1', localSeq: 1 });
     await clearAll();
     expect(await listItems()).toEqual([]);
   });

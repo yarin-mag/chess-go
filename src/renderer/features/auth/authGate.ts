@@ -16,8 +16,12 @@ interface GateInput {
  *    let a banned/invalidated session's device keep queueing offline results indefinitely)
  *  - previously authenticated, now signed out, online -> sign-in screen (normal re-login) */
 export function decideGate(input: GateInput): GateDecision {
-  if (input.status === 'checking') return 'checking';
   if (input.status === 'signedIn') return 'showApp';
-  if (!input.hasEverAuthenticated) return input.isOnline ? 'showSignIn' : 'offlineFallback';
-  return input.isOnline ? 'showSignIn' : 'offlineBlocked';
+  // Clerk loads its SDK over the network — `status` can never leave 'checking' while offline (isLoaded
+  // never arrives), so 'checking' must resolve immediately here instead of waiting on a network call
+  // that will never come. hasEverAuthenticated is the only signal left once there's no live status to
+  // trust, exactly like the signedOut+offline case below.
+  if (!input.isOnline) return input.hasEverAuthenticated ? 'offlineBlocked' : 'offlineFallback';
+  if (input.status === 'checking') return 'checking';
+  return 'showSignIn';
 }

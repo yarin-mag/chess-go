@@ -23,7 +23,19 @@ describe('decideGate', () => {
     expect(decideGate({ hasEverAuthenticated: true, status: 'signedOut', isOnline: true })).toBe('showSignIn');
   });
 
-  it('shows nothing conclusive yet while status is still being checked', () => {
+  it('shows nothing conclusive yet while status is still being checked and online', () => {
     expect(decideGate({ hasEverAuthenticated: false, status: 'checking', isOnline: true })).toBe('checking');
+  });
+
+  // Critical fix: Clerk's SDK loads clerk.browser.js over the network, so `isLoaded` (and thus a
+  // transition out of 'checking') never arrives while offline. Without this case, a cold start with
+  // no network gets stuck at 'checking' forever — a permanent blank screen — for every device,
+  // including ones that were previously signed in. 'checking' must never be trusted while offline.
+  it('falls back to the no-account experience when checking and offline, for a never-authenticated device', () => {
+    expect(decideGate({ hasEverAuthenticated: false, status: 'checking', isOnline: false })).toBe('offlineFallback');
+  });
+
+  it('blocks when checking and offline, for a previously-authenticated device', () => {
+    expect(decideGate({ hasEverAuthenticated: true, status: 'checking', isOnline: false })).toBe('offlineBlocked');
   });
 });

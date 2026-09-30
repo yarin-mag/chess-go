@@ -107,7 +107,7 @@ export const useGameStore = create<GameState>((set, get) => {
   const finish = (result: GameResult, now: number) => {
     abortEngine();
     get().clock.stop(now);
-    const { config, history } = get();
+    const { config, history, players } = get();
     if (history.length > 0) {
       // The saved game's own id, not gameStore's session-local `gameId` counter (which resets to 0 on
       // every reload) — a vault entry's id is `${sourceGameId}-${ply}`, and a session-local id would
@@ -115,9 +115,21 @@ export const useGameStore = create<GameState>((set, get) => {
       const savedId = useSavedGamesStore.getState().saveGame(config, history, result);
       enqueueBackgroundAnalysis({ sourceGameId: savedId, fen: config.fen, history, humanColors: humanColorsOf(config) });
       // Offline-sync record is separate from local save: it's what eventually earns coins once
-      // sub-project 2 lands, and only makes sense for a signed-in account to claim.
-      if (useAuthStore.getState().status === 'signedIn') {
-        void enqueueOfflineResult({ kind: 'vsComputer', transcript: { config, history, result } });
+      // sub-project 2 lands, and only makes sense for a signed-in account to claim. Only a genuine
+      // vs-computer game qualifies — a hotseat human-vs-human game would be a trivial coin-farming
+      // vector once coins are real, and an online game is sub-project 5's problem (server-arbitrated),
+      // never this offline queue's. isOnlineGame reads the live controllers, not config.white/black,
+      // so it's correct even though a remote seat's own PlayerKind is 'remote', not 'engine'.
+      const vsComputer = (config.white.type === 'engine' || config.black.type === 'engine') && !isOnlineGame(players);
+      if (vsComputer && useAuthStore.getState().status === 'signedIn') {
+        // Built explicitly (not `{ config, history, result }`) so a live, unclonable PlayerController
+        // function can never end up in the transcript IndexedDB has to structured-clone.
+        const transcript = {
+          config: { white: config.white, black: config.black, timeControl: config.timeControl, fen: config.fen },
+          history,
+          result,
+        };
+        void enqueueOfflineResult({ kind: 'vsComputer', transcript });
       }
     }
     set({ status: 'over', result, engineThinking: false, ...noSelection });

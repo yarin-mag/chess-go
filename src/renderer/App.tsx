@@ -43,7 +43,14 @@ export function App() {
   // simply never fire, leaving the app stuck showing nothing. Living here, on a component that's always
   // mounted regardless of what decideGate returns, this has no such window.
   useEffect(() => {
-    if (!isLoaded) return setChecking();
+    if (!isLoaded) {
+      // Don't stomp a cached signed-in identity while Clerk is still loading (or unreachable, e.g.
+      // offline) — authStore already started 'signedIn' from the cached accountId for exactly this
+      // case; calling setChecking() unconditionally here would immediately overwrite that back to
+      // 'checking', with no guarantee isLoaded ever arrives to undo it (Critical finding, final review).
+      if (!useAuthStore.getState().accountId) setChecking();
+      return;
+    }
     if (!isSignedIn) return setSignedOut();
     let cancelled = false;
     (async () => {
@@ -60,7 +67,26 @@ export function App() {
   }, [isLoaded, isSignedIn, getToken, setChecking, setSignedOut, setSignedIn]);
 
   useEffect(() => {
-    if (isOnline && status === 'signedIn') void syncOfflineQueue(getToken);
+    if (!(isOnline && status === 'signedIn')) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    // syncOfflineQueue owns no timers of its own (keeps its own tests leak-free) — this effect is
+    // what turns a failed attempt (server unreachable, network blip) into the exponential-backoff
+    // retry the spec asks for, instead of waiting for the next isOnline/status change to try again.
+    // The effect's own cleanup (unmount, or isOnline/status changing away) clears any pending retry.
+    let backoffMs = 5_000;
+    const attempt = () => {
+      void syncOfflineQueue(getToken).then((drained) => {
+        if (cancelled || drained) return;
+        timer = setTimeout(attempt, backoffMs);
+        backoffMs = Math.min(backoffMs * 2, 5 * 60_000);
+      });
+    };
+    attempt();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [isOnline, status, getToken]);
 
   const reviewing = useReviewStore((s) => s.status !== 'idle');

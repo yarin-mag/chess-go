@@ -1,10 +1,14 @@
 import { join, resolve as resolvePath } from 'node:path';
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { isAllowedExternalUrl, isAuthCallbackUrl } from './urlGuards';
 
 const PROTOCOL = 'b-chess';
 let mainWindow: BrowserWindow | null = null;
 
 function handleProtocolUrl(url: string): void {
+  // Any local process or web page can invoke this app's custom protocol — only ever forward the one
+  // URL shape the renderer's auth flow actually expects (Important finding, final whole-branch review).
+  if (!isAuthCallbackUrl(url)) return;
   mainWindow?.webContents.send('auth-callback', url);
 }
 
@@ -52,6 +56,10 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   ipcMain.handle('open-external', (_event, url: string) => {
+    // The renderer now loads Clerk's third-party script; without this check it could ask the main
+    // process to shell.openExternal() a file:// or other launchable scheme (Important finding, final
+    // whole-branch review). Only the OS's default https: handler is ever a legitimate use here.
+    if (!isAllowedExternalUrl(url)) return;
     void shell.openExternal(url);
   });
 

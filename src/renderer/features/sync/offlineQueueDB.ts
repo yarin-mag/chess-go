@@ -4,6 +4,10 @@ const DB_VERSION = 1;
 
 export interface QueuedItem {
   localId: string;
+  /** The account this result belongs to, stamped at enqueue time — lets the server (and a future
+   *  shared-device scenario, Important finding from the final whole-branch review) detect a queue
+   *  entry left over from a *different* signed-in user than the one currently syncing. */
+  accountId: string;
   kind: 'vsComputer' | 'milestone';
   transcript: unknown;
   playedAt: string; // ISO wall-clock time — informational only, never trusted alone (see localSeq)
@@ -44,7 +48,11 @@ export async function listItems(): Promise<QueuedItem[]> {
     req.onerror = () => reject(req.error);
   });
   db.close();
-  return items;
+  // getAll() orders by the object store's key (localId, a string) — NOT insertion order. localId's
+  // timestamp prefix collides easily between two enqueues in the same millisecond, at which point
+  // string-sorting the random suffix can reorder them. localSeq is the field actually meant to be
+  // monotonic; sort by it explicitly rather than relying on key order to agree.
+  return items.sort((a, b) => a.localSeq - b.localSeq);
 }
 
 export async function deleteItem(localId: string): Promise<void> {
