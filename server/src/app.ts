@@ -2,6 +2,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
+import { syncRoutes } from './routes/sync.js';
 import { authPlugin, type TokenVerifier } from './plugins/auth.js';
 import type { AccountsRepo } from './db/accountsRepo.js';
 
@@ -23,6 +24,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.register(async (protectedApp) => {
     authPlugin(protectedApp, deps.verifyToken);
     protectedApp.register(meRoutes, { accountsRepo: deps.accountsRepo });
+    protectedApp.register(syncRoutes);
   });
 
   return app;
