@@ -20,6 +20,7 @@
   "dependencies": {
     "@capacitor/android": "^6.2.2",
     "@capacitor/core": "^6.2.2",
+    "@clerk/react": "^6.17.3",
     "chess.js": "^1.4.0",
     "framer-motion": "^13.4.0",
     "i18next": "^26.4.2",

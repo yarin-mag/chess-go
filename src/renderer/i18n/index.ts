@@ -22,6 +22,9 @@ import onlineEs from '@/locales/es/online.json';
 import glossaryEn from '@/locales/en/glossary.json';
 import glossaryHe from '@/locales/he/glossary.json';
 import glossaryEs from '@/locales/es/glossary.json';
+// he/es not yet translated for this namespace — falls back to English via fallbackLng until a
+// translation pass happens (see Task 8 of the backend-foundation plan).
+import authEn from '@/locales/en/auth.json';
 
 // Read once at module load, before init, so the very first render already uses whatever locale was
 // persisted from a previous session — waiting for a component (SettingsPanel) to mount and sync it would
@@ -30,7 +33,7 @@ const persistedLocale = useSettingsStore.getState().locale;
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: commonEn, game: gameEn, tutor: tutorEn, stats: statsEn, puzzles: puzzlesEn, online: onlineEn, glossary: glossaryEn },
+    en: { common: commonEn, game: gameEn, tutor: tutorEn, stats: statsEn, puzzles: puzzlesEn, online: onlineEn, glossary: glossaryEn, auth: authEn },
     he: { common: commonHe, game: gameHe, tutor: tutorHe, stats: statsHe, puzzles: puzzlesHe, online: onlineHe, glossary: glossaryHe },
     es: { common: commonEs, game: gameEs, tutor: tutorEs, stats: statsEs, puzzles: puzzlesEs, online: onlineEs, glossary: glossaryEs },
   },
