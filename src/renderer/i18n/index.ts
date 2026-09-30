@@ -19,6 +19,9 @@ import puzzlesEs from '@/locales/es/puzzles.json';
 import onlineEn from '@/locales/en/online.json';
 import onlineHe from '@/locales/he/online.json';
 import onlineEs from '@/locales/es/online.json';
+import glossaryEn from '@/locales/en/glossary.json';
+import glossaryHe from '@/locales/he/glossary.json';
+import glossaryEs from '@/locales/es/glossary.json';
 
 // Read once at module load, before init, so the very first render already uses whatever locale was
 // persisted from a previous session — waiting for a component (SettingsPanel) to mount and sync it would
@@ -27,9 +30,9 @@ const persistedLocale = useSettingsStore.getState().locale;
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: commonEn, game: gameEn, tutor: tutorEn, stats: statsEn, puzzles: puzzlesEn, online: onlineEn },
-    he: { common: commonHe, game: gameHe, tutor: tutorHe, stats: statsHe, puzzles: puzzlesHe, online: onlineHe },
-    es: { common: commonEs, game: gameEs, tutor: tutorEs, stats: statsEs, puzzles: puzzlesEs, online: onlineEs },
+    en: { common: commonEn, game: gameEn, tutor: tutorEn, stats: statsEn, puzzles: puzzlesEn, online: onlineEn, glossary: glossaryEn },
+    he: { common: commonHe, game: gameHe, tutor: tutorHe, stats: statsHe, puzzles: puzzlesHe, online: onlineHe, glossary: glossaryHe },
+    es: { common: commonEs, game: gameEs, tutor: tutorEs, stats: statsEs, puzzles: puzzlesEs, online: onlineEs, glossary: glossaryEs },
   },
   lng: persistedLocale,
   fallbackLng: 'en',
