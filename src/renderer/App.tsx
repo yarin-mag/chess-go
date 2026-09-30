@@ -32,15 +32,32 @@ export function App() {
   // called must never change between renders, and the gate legitimately does change between renders
   // (checking -> showApp, or signedIn -> offlineBlocked) as connectivity/auth state changes.
   const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { status, hasEverAuthenticated, setChecking, setSignedOut } = useAuthStore();
+  const { status, hasEverAuthenticated, setChecking, setSignedOut, setSignedIn } = useAuthStore();
   const isOnline = useOnlineStatus();
 
+  // This effect — not AuthGateScreen's own — is the one place that ever reacts to isSignedIn becoming
+  // true. AuthGateScreen only *renders* while decideGate() says 'showSignIn'; decideGate checks 'status'
+  // itself, so a version of this effect that let AuthGateScreen own the isSignedIn->setSignedIn step
+  // raced its own precondition — status never left 'checking'/'signedOut' fast enough for gate to reach
+  // 'showSignIn' at exactly the render where isSignedIn flips true, so AuthGateScreen's effect could
+  // simply never fire, leaving the app stuck showing nothing. Living here, on a component that's always
+  // mounted regardless of what decideGate returns, this has no such window.
   useEffect(() => {
     if (!isLoaded) return setChecking();
-    if (!isSignedIn) setSignedOut();
-    // A truthy isSignedIn is handled by AuthGateScreen's own effect calling setSignedIn once /me
-    // resolves — this effect only ever needs to move state *toward* signedOut/checking.
-  }, [isLoaded, isSignedIn, setChecking, setSignedOut]);
+    if (!isSignedIn) return setSignedOut();
+    let cancelled = false;
+    (async () => {
+      const token = await getToken();
+      const base = import.meta.env.VITE_API_BASE_URL as string;
+      const res = await fetch(`${base}/me`, { headers: { authorization: `Bearer ${token}` } });
+      if (!res.ok || cancelled) return;
+      const { accountId, clerkUserId } = await res.json();
+      setSignedIn(accountId, clerkUserId);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn, getToken, setChecking, setSignedOut, setSignedIn]);
 
   useEffect(() => {
     if (isOnline && status === 'signedIn') void syncOfflineQueue(getToken);

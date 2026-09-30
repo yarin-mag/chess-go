@@ -1,7 +1,6 @@
-import { SignIn, useAuth, useClerk, useSignIn } from '@clerk/react';
+import { SignIn, useClerk, useSignIn } from '@clerk/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/features/auth/authStore';
 import styles from './AuthGateScreen.module.css';
 
 const AUTH_CALLBACK_URL = 'b-chess://auth-callback';
@@ -10,31 +9,13 @@ const AUTH_CALLBACK_URL = 'b-chess://auth-callback';
  *  this global, so its presence is a reliable "are we in Electron" check without any bundler config. */
 const isElectron = typeof window !== 'undefined' && !!window.electronAuth;
 
-/** Shown whenever decideGate() says 'showSignIn'. Once Clerk reports a signed-in session, fetches
- *  /me to get this account's server-side id and populate authStore — the one place that ever calls
- *  setSignedIn, so every other screen can trust useAuthStore.accountId is real. */
+/** Shown whenever decideGate() says 'showSignIn'. Purely presentational — reacting to isSignedIn and
+ *  calling /me lives in App.tsx's own effect (always mounted, so it can never miss the moment
+ *  isSignedIn flips true the way a component that only renders while gate === 'showSignIn' can). */
 export function AuthGateScreen() {
   const { t } = useTranslation();
-  const { isSignedIn, getToken } = useAuth();
   const { signIn } = useSignIn();
   const clerk = useClerk();
-  const setSignedIn = useAuthStore((s) => s.setSignedIn);
-
-  useEffect(() => {
-    if (!isSignedIn) return;
-    let cancelled = false;
-    (async () => {
-      const token = await getToken();
-      const base = import.meta.env.VITE_API_BASE_URL as string;
-      const res = await fetch(`${base}/me`, { headers: { authorization: `Bearer ${token}` } });
-      if (!res.ok || cancelled) return;
-      const { accountId, clerkUserId } = await res.json();
-      setSignedIn(accountId, clerkUserId);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isSignedIn, getToken, setSignedIn]);
 
   // Electron only: the embedded <SignIn/> below can't complete a real sign-in inside a BrowserWindow
   // (no OAuth-provider trust, no way back from a system-browser-only flow) — instead we open Clerk's
@@ -58,8 +39,8 @@ export function AuthGateScreen() {
         const { error } = await signIn.ticket({ ticket });
         if (!error && signIn.status === 'complete') {
           // No `navigate` needed — this isn't a web page with a route to redirect to. Once finalize()
-          // resolves, Clerk's own reactive state flips isSignedIn to true, and the effect above (which
-          // already exists for the web sign-in path) picks it up and calls /me exactly the same way.
+          // resolves, Clerk's own reactive state flips isSignedIn to true, and App.tsx's always-mounted
+          // effect (shared with the web sign-in path) picks it up and calls /me exactly the same way.
           await signIn.finalize();
         }
       })();

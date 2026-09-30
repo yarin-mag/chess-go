@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com" />
+    <!-- script-src/connect-src additions are for Clerk: clerk-js loads itself as a same-origin-relative
+         <script> from the app's own Frontend API host (https://*.clerk.accounts.dev in dev; a real
+         Clerk app's custom domain in production — add that host here once Task 14's real deploy has one),
+         and useAuth/useSignIn/etc. call that same host's API directly. img-src additionally needs
+         img.clerk.com for user avatar images rendered by Clerk's own UI components. %VITE_API_BASE_URL%
+         is Vite's own build-time env substitution (see vite.config.web.ts's envDir) — this app's own
+         backend origin, which changes between local dev and the real deployed server. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.clerk.accounts.dev; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.clerk.com; media-src 'self'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com https://*.clerk.accounts.dev %VITE_API_BASE_URL%" />
     <meta name="theme-color" content="#16150f" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

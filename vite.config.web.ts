@@ -10,6 +10,11 @@ import { VitePWA } from 'vite-plugin-pwa';
  */
 export default defineConfig({
   root: 'src/renderer',
+  // `root` moves where Vite looks for index.html, but it also moves Vite's default env-file directory
+  // (.env/.env.local) to match unless told otherwise — this repo's .env files live at the true project
+  // root (where `clerk init`/`clerk env pull` write them), not inside src/renderer/. Without this,
+  // every VITE_* var (VITE_CLERK_PUBLISHABLE_KEY, VITE_API_BASE_URL) silently resolves to undefined.
+  envDir: __dirname,
   base: './',
   build: {
     outDir: resolve(__dirname, 'dist-web'),
