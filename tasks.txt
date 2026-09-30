@@ -1,0 +1,13 @@
+# Open tasks (not yet scheduled into a plan)
+
+## Cosmetics art — deferred to Claude Design
+Once the coins/ranks/cosmetics backend exists (see docs/superpowers/specs/ for the
+economy sub-projects), the actual visual design of purchasable cosmetics needs a
+dedicated design pass:
+- Chess piece skin sets (alternate pawn/knight/bishop/rook/queen/king art, per set)
+- Board skins (square colors/textures, coordinate styling)
+- Chat "ready sentence" / emoji reaction packs beyond the default set
+- Crate/drop visual treatment (if the randomized-cosmetics mechanic ships)
+
+Not started. Revisit once the Cosmetics shop sub-project's data model (item ids,
+categories, price tiers) is spec'd, so the design work has real slots to fill.
