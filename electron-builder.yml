@@ -5,6 +5,10 @@ directories:
 files:
   - out/**
   - package.json
+protocols:
+  name: B-Chess Auth Callback
+  schemes:
+    - b-chess
 win:
   target: nsis
   # Unsigned build: skip the code-sign toolchain download (which needs symlink privileges on Windows).
