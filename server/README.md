@@ -37,7 +37,15 @@ resulting values.
 
 1. **Clerk** — create an application at clerk.com. Copy the **Secret key** into
    `CLERK_SECRET_KEY`. Copy the **Publishable key** for the client (used in a later task's
-   `.env` for the renderer, not this server).
+   `.env` for the renderer, not this server). For the Electron desktop sign-in flow
+   (`AuthGateScreen.tsx`'s system-browser handoff via `b-chess://auth-callback`) to actually hand
+   back a usable ticket, register `b-chess://auth-callback` as an allowed redirect URI wherever
+   Clerk's Dashboard exposes native/custom-scheme redirect configuration for this application —
+   the exact location in the Dashboard and the resulting query-param name on the redirect
+   (`ticket` vs `__clerk_ticket` vs something else) needs confirming against your own Clerk
+   application once created; `AuthGateScreen.tsx` checks both of the plausible names but this is
+   the one piece of the whole plan genuinely unverifiable without a real Clerk app — verify it as
+   part of Task 14's live pass.
 2. **Supabase** — create a project at supabase.com. Under Settings → Database, copy the
    connection string (Session pooler mode) into `DATABASE_URL`. Install the Supabase CLI
    (`npm install -g supabase`), run `supabase link --project-ref <your-project-ref>`, then
