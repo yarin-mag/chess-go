@@ -1,5 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePuzzleProgressStore } from './puzzleProgressStore';
+
+vi.mock('@/features/sync/offlineQueueStore', () => ({ enqueueOfflineResult: vi.fn() }));
+
+import { enqueueOfflineResult } from '@/features/sync/offlineQueueStore';
+import { useAuthStore } from '@/features/auth/authStore';
 
 describe('puzzleProgressStore', () => {
   beforeEach(() => {
@@ -13,6 +18,11 @@ describe('puzzleProgressStore', () => {
       lastSolvedDate: null,
       rushBest: { '3': 0, '5': 0 },
     });
+  });
+
+  afterEach(() => {
+    useAuthStore.setState({ status: 'signedOut', accountId: null, clerkUserId: null, hasEverAuthenticated: false });
+    vi.mocked(enqueueOfflineResult).mockClear();
   });
 
   it('starts at the very first puzzle', () => {
@@ -53,6 +63,27 @@ describe('puzzleProgressStore', () => {
     usePuzzleProgressStore.getState().markSolved(0, 1); // huge gap since 2020 -> resets to 1
     expect(usePuzzleProgressStore.getState().currentStreak).toBe(1);
     expect(usePuzzleProgressStore.getState().longestStreak).toBe(5);
+  });
+
+  it('enqueues a milestone sync record when signed in', () => {
+    useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
+    usePuzzleProgressStore.getState().markSolved(1, 0);
+    expect(enqueueOfflineResult).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'milestone' }),
+    );
+  });
+
+  it('does not enqueue a milestone when signed out', () => {
+    usePuzzleProgressStore.getState().markSolved(1, 0);
+    expect(enqueueOfflineResult).not.toHaveBeenCalled();
+  });
+
+  it('does not enqueue a milestone for a solve that does not advance progress', () => {
+    useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
+    usePuzzleProgressStore.getState().markSolved(2, 5);
+    vi.mocked(enqueueOfflineResult).mockClear();
+    usePuzzleProgressStore.getState().markSolved(0, 1); // replaying an earlier puzzle — no real progress
+    expect(enqueueOfflineResult).not.toHaveBeenCalled();
   });
 
   describe('recordRushScore', () => {

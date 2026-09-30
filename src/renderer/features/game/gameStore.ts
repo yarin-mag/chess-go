@@ -16,6 +16,8 @@ import { UNTIMED, toClock } from '@/features/clock/presets';
 import { useSavedGamesStore } from '@/features/history/savedGamesStore';
 import { abortBackgroundAnalysis, enqueueBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
 import { humanColorsOf } from '@/features/vault/blunderVaultStore';
+import { enqueueOfflineResult } from '@/features/sync/offlineQueueStore';
+import { useAuthStore } from '@/features/auth/authStore';
 import { requestMoveHint } from '@/engine/engineClient';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { createPlayer, type PlayerController } from './players';
@@ -112,6 +114,11 @@ export const useGameStore = create<GameState>((set, get) => {
       // silently collide with a same-numbered game from a different session, misattributing solves.
       const savedId = useSavedGamesStore.getState().saveGame(config, history, result);
       enqueueBackgroundAnalysis({ sourceGameId: savedId, fen: config.fen, history, humanColors: humanColorsOf(config) });
+      // Offline-sync record is separate from local save: it's what eventually earns coins once
+      // sub-project 2 lands, and only makes sense for a signed-in account to claim.
+      if (useAuthStore.getState().status === 'signedIn') {
+        void enqueueOfflineResult({ kind: 'vsComputer', transcript: { config, history, result } });
+      }
     }
     set({ status: 'over', result, engineThinking: false, ...noSelection });
   };

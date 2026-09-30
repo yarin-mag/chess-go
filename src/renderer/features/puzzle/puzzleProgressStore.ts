@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { enqueueOfflineResult } from '@/features/sync/offlineQueueStore';
+import { useAuthStore } from '@/features/auth/authStore';
 import { nextStreak, todayString } from './streak';
 
 export type RushDuration = '3' | '5';
@@ -58,6 +60,11 @@ export const usePuzzleProgressStore = create<PuzzleProgressState>()(
             furthestStage: further ? nextStage : furthestStage,
             furthestPuzzleIndex: further ? nextPuzzleIndex : furthestPuzzleIndex,
           });
+          // Only a genuine advance is a real milestone — replaying an earlier puzzle (further === false)
+          // isn't progress worth syncing, same spirit as gameStore.finish()'s offline-sync wiring.
+          if (further && useAuthStore.getState().status === 'signedIn') {
+            void enqueueOfflineResult({ kind: 'milestone', transcript: { stage: nextStage, puzzleIndex: nextPuzzleIndex } });
+          }
         },
 
         recordDailySolve() {

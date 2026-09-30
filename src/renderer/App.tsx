@@ -15,6 +15,7 @@ import { WeaknessDashboardScreen } from './components/WeaknessDashboardScreen';
 import { decideGate } from './features/auth/authGate';
 import { useAuthStore } from './features/auth/authStore';
 import { useOnlineStatus } from './features/auth/useOnlineStatus';
+import { syncOfflineQueue } from './features/sync/syncClient';
 import { useGameStore } from './features/game/gameStore';
 import { useGlossaryVisibilityStore } from './features/glossary/glossaryVisibilityStore';
 import { useOpeningExplorerStore } from './features/openings/openingExplorerStore';
@@ -30,7 +31,7 @@ export function App() {
   // earlier version of this function did) violates React's Rules of Hooks: the number of hooks
   // called must never change between renders, and the gate legitimately does change between renders
   // (checking -> showApp, or signedIn -> offlineBlocked) as connectivity/auth state changes.
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const { status, hasEverAuthenticated, setChecking, setSignedOut } = useAuthStore();
   const isOnline = useOnlineStatus();
 
@@ -40,6 +41,10 @@ export function App() {
     // A truthy isSignedIn is handled by AuthGateScreen's own effect calling setSignedIn once /me
     // resolves — this effect only ever needs to move state *toward* signedOut/checking.
   }, [isLoaded, isSignedIn, setChecking, setSignedOut]);
+
+  useEffect(() => {
+    if (isOnline && status === 'signedIn') void syncOfflineQueue(getToken);
+  }, [isOnline, status, getToken]);
 
   const reviewing = useReviewStore((s) => s.status !== 'idle');
   const puzzleStatus = usePuzzleStore((s) => s.status);

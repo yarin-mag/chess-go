@@ -3,6 +3,8 @@ import { isOnlineGame, useGameStore, type GameConfig } from './gameStore';
 import { UNTIMED } from '@/features/clock/presets';
 import { useSavedGamesStore } from '@/features/history/savedGamesStore';
 import { enqueueBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
+import { enqueueOfflineResult } from '@/features/sync/offlineQueueStore';
+import { useAuthStore } from '@/features/auth/authStore';
 
 // Stub the worker-backed engine: always answer with the first legal move.
 vi.mock('@/engine/engineClient', () => ({
@@ -23,6 +25,8 @@ vi.mock('@/features/vault/backgroundAnalysisQueue', () => ({
   abortBackgroundAnalysis: vi.fn(),
 }));
 
+vi.mock('@/features/sync/offlineQueueStore', () => ({ enqueueOfflineResult: vi.fn() }));
+
 const human = { type: 'human' } as const;
 const localConfig = (over: Partial<GameConfig> = {}): GameConfig => ({
   white: human,
@@ -42,6 +46,8 @@ describe('gameStore', () => {
   afterEach(() => {
     state().backToMenu();
     vi.useRealTimers();
+    useAuthStore.setState({ status: 'signedOut', accountId: null, clerkUserId: null, hasEverAuthenticated: false });
+    vi.mocked(enqueueOfflineResult).mockClear();
   });
 
   it('alternates turns and records history', () => {
@@ -90,6 +96,28 @@ describe('gameStore', () => {
     play('d8', 'h4');
     expect(state().status).toBe('over');
     expect(state().result).toEqual({ kind: 'checkmate', winner: 'b' });
+  });
+
+  it('enqueues an offline-sync record for the finished game when signed in', () => {
+    useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
+    state().startGame(localConfig());
+    play('f2', 'f3');
+    play('e7', 'e5');
+    play('g2', 'g4');
+    play('d8', 'h4'); // checkmate
+    expect(enqueueOfflineResult).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'vsComputer' }),
+    );
+  });
+
+  it('does not enqueue anything when signed out', () => {
+    useAuthStore.setState({ status: 'signedOut', accountId: null, clerkUserId: null, hasEverAuthenticated: false });
+    state().startGame(localConfig());
+    play('f2', 'f3');
+    play('e7', 'e5');
+    play('g2', 'g4');
+    play('d8', 'h4');
+    expect(enqueueOfflineResult).not.toHaveBeenCalled();
   });
 
   it('enqueues background analysis keyed to the real saved-game id, restricted to the humans who played', () => {
