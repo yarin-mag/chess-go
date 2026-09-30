@@ -7,6 +7,7 @@ import { classify, type Tier } from '@/engine/classify';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { usePuzzleProgressStore, type RushDuration } from './puzzleProgressStore';
 import { allPuzzles, dailyPuzzle, puzzlesForStage, shuffled, totalStagePuzzleCount, type PuzzleData } from './puzzles';
+import { abortBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
 import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
 import { toPuzzleData } from '@/features/vault/vaultPuzzle';
 
@@ -151,6 +152,10 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
     startVault() {
       const entry = useBlunderVaultStore.getState().pickNext();
       if (!entry) return;
+      // The boot-time backfill (see backfillVault.ts) can still be grinding through up to 20 games in the
+      // background when the player jumps straight to "My Mistakes" — never let that compete with this
+      // foreground puzzle's own engine use.
+      abortBackgroundAnalysis();
       load(toPuzzleData(entry), -1, -1, 'vault');
     },
 

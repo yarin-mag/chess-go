@@ -45,6 +45,7 @@ export function ReviewBoard({ flipped }: Props) {
   const closeExplorer = () => {
     setExplorerSelected(null);
     setExplored(null);
+    setExploring(false);
   };
 
   const onSquareClick = (sq: SquareName) => {
@@ -53,10 +54,16 @@ export function ReviewBoard({ flipped }: Props) {
       const from = explorerSelected;
       setExplorerSelected(null);
       setExploring(true);
-      exploreMove(currentFen, { from, to: sq }).then((result) => {
-        setExplored(result);
-        setExploring(false);
-      });
+      exploreMove(currentFen, { from, to: sq })
+        .then((result) => {
+          setExplored(result);
+          setExploring(false);
+        })
+        .catch(() => {
+          // Worker crashed or the request was otherwise rejected — never leave the popover pinned on
+          // "Grading…" forever with no way to dismiss it.
+          setExploring(false);
+        });
       return;
     }
     const piece = currentGame.pieceAt(sq);

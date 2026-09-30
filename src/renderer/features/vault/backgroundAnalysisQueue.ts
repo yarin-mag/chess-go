@@ -1,4 +1,4 @@
-import type { MoveRecord } from '@/core/types';
+import type { Color, MoveRecord } from '@/core/types';
 import { analyzeGame } from '@/features/review/analyzeGame';
 import { extractVaultEntries, useBlunderVaultStore } from './blunderVaultStore';
 
@@ -6,6 +6,8 @@ interface QueueItem {
   sourceGameId: string;
   fen: string | undefined;
   history: MoveRecord[];
+  /** Which color(s) the human actually played — never the computer's or an opponent's mistakes. */
+  humanColors: Color[];
 }
 
 let controller: AbortController | null = null;
@@ -13,7 +15,9 @@ let queue: QueueItem[] = [];
 let running = false;
 
 /** Cancels any in-flight or still-queued background analysis. Called before any foreground engine use
- *  (a new game, opening Review, exploring a move) so background work never competes with it. */
+ *  (a new game, opening Review, opening a vault puzzle) so background work never competes with it. Once a
+ *  review is `'ready'` (the only time exploring a move is possible), its own `reviewStore.start()` call
+ *  already cleared the queue — exploring never needs its own abort call. */
 export function abortBackgroundAnalysis(): void {
   controller?.abort();
   controller = null;
@@ -35,7 +39,7 @@ async function runNext(): Promise<void> {
   try {
     const analysis = await analyzeGame(item.fen, item.history, () => {}, localController.signal);
     if (localController.signal.aborted) return;
-    const entries = extractVaultEntries(item.sourceGameId, analysis);
+    const entries = extractVaultEntries(item.sourceGameId, analysis, item.humanColors);
     if (entries.length > 0) useBlunderVaultStore.getState().addEntries(entries);
   } catch {
     // Aborted, or a worker error mid-analysis — a background run silently contributing nothing is fine,

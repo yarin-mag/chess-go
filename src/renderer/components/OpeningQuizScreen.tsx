@@ -2,7 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { trackPieces } from '@/core/pieceTracking';
 import type { Square as SquareName } from '@/core/types';
-import { useOpeningQuizStore } from '@/features/openings/openingQuizStore';
+import { playerTurnCount, useOpeningQuizStore } from '@/features/openings/openingQuizStore';
 import { useSettingsStore } from '@/features/settings/settingsStore';
 import { BOARD_THEMES } from '@/styles/themes';
 import { BoardView } from './BoardView';
@@ -64,7 +64,7 @@ export function OpeningQuizScreen({ onExit }: Props) {
 
         {status === 'done' ? (
           <p className={styles.progress}>
-            {t('puzzles:quizComplete', { correct: correctCount, total: Math.ceil((opening?.sequence.length ?? 0) / 2) })}
+            {t('puzzles:quizComplete', { correct: correctCount, total: playerTurnCount(opening?.sequence.length ?? 0, side) })}
           </p>
         ) : (
           <p className={styles.feedback}>

@@ -25,6 +25,11 @@ describe('savedGamesStore', () => {
     expect(games[0].result).toBe(result);
   });
 
+  it('returns the id it just assigned, so callers can reference this exact saved game', () => {
+    const id = useSavedGamesStore.getState().saveGame(config, [move], result);
+    expect(useSavedGamesStore.getState().games[0].id).toBe(id);
+  });
+
   it('keeps the most recent games first', () => {
     useSavedGamesStore.getState().saveGame(config, [move], result);
     const second = { ...result, winner: 'b' as const };

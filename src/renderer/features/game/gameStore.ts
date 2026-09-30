@@ -15,6 +15,7 @@ import { Clock } from '@/features/clock/clock';
 import { UNTIMED, toClock } from '@/features/clock/presets';
 import { useSavedGamesStore } from '@/features/history/savedGamesStore';
 import { abortBackgroundAnalysis, enqueueBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
+import { humanColorsOf } from '@/features/vault/blunderVaultStore';
 import { requestMoveHint } from '@/engine/engineClient';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
 import { createPlayer, type PlayerController } from './players';
@@ -104,10 +105,13 @@ export const useGameStore = create<GameState>((set, get) => {
   const finish = (result: GameResult, now: number) => {
     abortEngine();
     get().clock.stop(now);
-    const { config, history, gameId } = get();
+    const { config, history } = get();
     if (history.length > 0) {
-      useSavedGamesStore.getState().saveGame(config, history, result);
-      enqueueBackgroundAnalysis({ sourceGameId: String(gameId), fen: config.fen, history });
+      // The saved game's own id, not gameStore's session-local `gameId` counter (which resets to 0 on
+      // every reload) — a vault entry's id is `${sourceGameId}-${ply}`, and a session-local id would
+      // silently collide with a same-numbered game from a different session, misattributing solves.
+      const savedId = useSavedGamesStore.getState().saveGame(config, history, result);
+      enqueueBackgroundAnalysis({ sourceGameId: savedId, fen: config.fen, history, humanColors: humanColorsOf(config) });
     }
     set({ status: 'over', result, engineThinking: false, ...noSelection });
   };

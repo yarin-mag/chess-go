@@ -27,14 +27,14 @@ const grade = {
   bestScore: 100,
   playedScore: -200,
   centipawnLoss: 300,
-  move: { san: 'Kh2' } as never,
+  move: { san: 'Kh2', color: 'w' } as never,
   opening: null,
 };
 
 describe('enqueueBackgroundAnalysis', () => {
   it('runs analyzeGame and stores extracted vault entries on completion', async () => {
     vi.mocked(analyzeGame).mockResolvedValueOnce([grade]);
-    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [] });
+    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [], humanColors: ['w'] });
     await flush();
     expect(useBlunderVaultStore.getState().entries).toHaveLength(1);
     expect(useBlunderVaultStore.getState().entries[0].sourceGameId).toBe('g1');
@@ -45,8 +45,8 @@ describe('enqueueBackgroundAnalysis', () => {
     vi.mocked(analyzeGame).mockImplementationOnce(() => new Promise((r) => (resolveFirst = r)));
     vi.mocked(analyzeGame).mockResolvedValueOnce([]);
 
-    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [] });
-    enqueueBackgroundAnalysis({ sourceGameId: 'g2', fen: undefined, history: [] });
+    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [], humanColors: ['w'] });
+    enqueueBackgroundAnalysis({ sourceGameId: 'g2', fen: undefined, history: [], humanColors: ['w'] });
     await flush();
     expect(analyzeGame).toHaveBeenCalledTimes(1); // second is still queued, not started
 
@@ -61,8 +61,8 @@ describe('enqueueBackgroundAnalysis', () => {
         signal.addEventListener('abort', () => reject(new DOMException('Analysis aborted', 'AbortError')));
       });
     });
-    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [] });
-    enqueueBackgroundAnalysis({ sourceGameId: 'g2', fen: undefined, history: [] });
+    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [], humanColors: ['w'] });
+    enqueueBackgroundAnalysis({ sourceGameId: 'g2', fen: undefined, history: [], humanColors: ['w'] });
     await flush();
     abortBackgroundAnalysis();
     await flush();

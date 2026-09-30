@@ -11,6 +11,13 @@ const uciToMove = (uci: string): MoveInput => ({
 
 const sameMove = (a: MoveInput, b: MoveInput) => a.from === b.from && a.to === b.to;
 
+/** How many of a curated line's plies are actually the player's to answer. White moves first in every
+ *  pair (rounds up on an odd-length line); Black's turn is always the second of a pair (rounds down) — a
+ *  1-ply line as Black asks the player nothing at all, so this correctly returns 0 for it. */
+export function playerTurnCount(sequenceLength: number, side: Color): number {
+  return side === 'w' ? Math.ceil(sequenceLength / 2) : Math.floor(sequenceLength / 2);
+}
+
 interface OpeningQuizState {
   opening: CuratedOpening | null;
   side: Color;
@@ -19,6 +26,9 @@ interface OpeningQuizState {
   correctCount: number;
   status: 'idle' | 'playing' | 'done';
   lastWrong: { san: string; bookSan: string } | null;
+  /** Steps the player has already gotten wrong at least once — a step found this way never counts toward
+   *  `correctCount`, even once the player eventually plays the book move. */
+  wrongSteps: Set<number>;
   start(opening: CuratedOpening, side: Color): void;
   submitMove(move: MoveInput): void;
   exit(): void;
@@ -56,14 +66,15 @@ export const useOpeningQuizStore = create<OpeningQuizState>((set, get) => {
     correctCount: 0,
     status: 'idle',
     lastWrong: null,
+    wrongSteps: new Set(),
 
     start(opening, side) {
-      set({ opening, side, game: new ChessGame(), step: 0, correctCount: 0, status: 'playing', lastWrong: null });
+      set({ opening, side, game: new ChessGame(), step: 0, correctCount: 0, status: 'playing', lastWrong: null, wrongSteps: new Set() });
       advanceOpponentIfNeeded();
     },
 
     submitMove(move) {
-      const { status, opening, step, side, game } = get();
+      const { status, opening, step, side, game, wrongSteps } = get();
       if (status !== 'playing' || !opening) return;
       const isPlayerTurn = step % 2 === (side === 'w' ? 0 : 1);
       if (!isPlayerTurn) return;
@@ -72,18 +83,22 @@ export const useOpeningQuizStore = create<OpeningQuizState>((set, get) => {
       if (!sameMove(move, book)) {
         const bookSan = new ChessGame(game.fen()).move(book)?.san ?? opening.sequence[step];
         const attemptedSan = new ChessGame(game.fen()).move(move)?.san ?? `${move.from}${move.to}`;
-        set({ lastWrong: { san: attemptedSan, bookSan } });
+        set({ lastWrong: { san: attemptedSan, bookSan }, wrongSteps: new Set(wrongSteps).add(step) });
         return;
       }
 
+      // A step only counts toward the score if the player found it without a prior wrong guess at this
+      // same step — otherwise every quiz would eventually finish "N/N" regardless of how many attempts it
+      // took, since a wrong guess never advances the line on its own.
+      const wasWrongBefore = wrongSteps.has(step);
       set({ lastWrong: null });
       playStep(step);
-      set({ correctCount: get().correctCount + 1 });
+      if (!wasWrongBefore) set({ correctCount: get().correctCount + 1 });
       advanceOpponentIfNeeded();
     },
 
     exit() {
-      set({ opening: null, game: new ChessGame(), step: 0, correctCount: 0, status: 'idle', lastWrong: null });
+      set({ opening: null, game: new ChessGame(), step: 0, correctCount: 0, status: 'idle', lastWrong: null, wrongSteps: new Set() });
     },
   };
 });

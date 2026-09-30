@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { isOnlineGame, useGameStore, type GameConfig } from './gameStore';
 import { UNTIMED } from '@/features/clock/presets';
+import { useSavedGamesStore } from '@/features/history/savedGamesStore';
+import { enqueueBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
 
 // Stub the worker-backed engine: always answer with the first legal move.
 vi.mock('@/engine/engineClient', () => ({
@@ -88,6 +90,18 @@ describe('gameStore', () => {
     play('d8', 'h4');
     expect(state().status).toBe('over');
     expect(state().result).toEqual({ kind: 'checkmate', winner: 'b' });
+  });
+
+  it('enqueues background analysis keyed to the real saved-game id, restricted to the humans who played', () => {
+    state().startGame(localConfig()); // local human-vs-human — both colors are "the player"
+    play('f2', 'f3');
+    play('e7', 'e5');
+    play('g2', 'g4');
+    play('d8', 'h4'); // checkmate
+    const savedId = useSavedGamesStore.getState().games[0].id;
+    expect(enqueueBackgroundAnalysis).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceGameId: savedId, humanColors: ['w', 'b'] }),
+    );
   });
 
   it('ends the game when a clock flags', () => {

@@ -46,6 +46,15 @@ describe('summarizeGame', () => {
     expect(summary[0]).toBe('You had trouble in a few phases: Opening · Endgame.');
   });
 
+  it('does not claim a clean game when a mistake exists but no phase reaches the sample threshold', () => {
+    // Only 2 opening moves and 1 endgame move — every phase bucket is below MIN_PHASE_SAMPLE (3), so the
+    // real blunder at ply 30 would otherwise be silently swallowed and reported as "Clean game".
+    const analysis = [move(0, 'good'), move(1, 'good'), move(30, 'blunder', ['hangsPiece'])];
+    const summary = summarizeGame(analysis);
+    expect(summary).not.toContain('Clean game — no real mistakes to point out.');
+    expect(summary).toContain('Most often it came down to leaving a piece hanging.');
+  });
+
   it('adds a top-mistake sentence naming the most frequent tag among the mistakes', () => {
     const analysis = [
       move(0, 'blunder', ['hangsPiece']),

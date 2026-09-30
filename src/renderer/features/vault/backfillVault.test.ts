@@ -18,7 +18,7 @@ const savedGame = (id: string): SavedGame => ({
 });
 
 afterEach(() => {
-  useBlunderVaultStore.setState({ entries: [], solvedIds: [] });
+  useBlunderVaultStore.setState({ entries: [], solvedIds: [], hasBackfilled: false });
   useSavedGamesStore.setState({ games: [] });
   vi.mocked(enqueueBackgroundAnalysis).mockReset();
 });
@@ -42,5 +42,24 @@ describe('backfillVaultIfEmpty', () => {
     backfillVaultIfEmpty();
     expect(enqueueBackgroundAnalysis).toHaveBeenCalledTimes(MAX_BACKFILL_GAMES);
     expect(vi.mocked(enqueueBackgroundAnalysis).mock.calls[0][0].sourceGameId).toBe('g0');
+  });
+
+  it('restricts each enqueued game to the humans who actually played it', () => {
+    useSavedGamesStore.setState({ games: [savedGame('a')] }); // savedGame() is human-vs-human
+    backfillVaultIfEmpty();
+    expect(vi.mocked(enqueueBackgroundAnalysis).mock.calls[0][0].humanColors).toEqual(['w', 'b']);
+  });
+
+  it('marks the vault as backfilled even before any analysis completes, so a re-boot never re-runs it', () => {
+    useSavedGamesStore.setState({ games: [savedGame('a')] });
+    backfillVaultIfEmpty();
+    expect(useBlunderVaultStore.getState().hasBackfilled).toBe(true);
+  });
+
+  it('does nothing on a later boot once already backfilled, even if the vault is still empty', () => {
+    useBlunderVaultStore.setState({ entries: [], solvedIds: [], hasBackfilled: true });
+    useSavedGamesStore.setState({ games: [savedGame('a')] });
+    backfillVaultIfEmpty();
+    expect(enqueueBackgroundAnalysis).not.toHaveBeenCalled();
   });
 });

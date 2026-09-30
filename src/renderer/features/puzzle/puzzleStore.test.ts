@@ -3,6 +3,9 @@ import { usePuzzleStore } from './puzzleStore';
 import { usePuzzleProgressStore } from './puzzleProgressStore';
 import { puzzlesForStage } from './puzzles';
 import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
+import { abortBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
+
+vi.mock('@/features/vault/backgroundAnalysisQueue', () => ({ abortBackgroundAnalysis: vi.fn() }));
 
 vi.mock('@/engine/engineClient', () => ({
   requestMoveGrade: vi.fn(async (fen: string, move: { from: string; to: string; promotion?: string }) => {
@@ -216,6 +219,20 @@ describe('puzzleStore', () => {
 });
 
 describe('startVault', () => {
+  it('aborts any in-flight background analysis before loading — never races the boot-time backfill', () => {
+    useBlunderVaultStore.setState({
+      entries: [{
+        id: 'g1-4', sourceGameId: 'g1', ply: 4,
+        fenBefore: '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1',
+        bestMove: { from: 'a1', to: 'a8' }, bestSan: 'Ra8#', playedSan: 'Kd2',
+        tier: 'blunder', tags: ['missedMate'], capturedAt: '2026-09-30T00:00:00.000Z',
+      }],
+      solvedIds: [],
+    });
+    usePuzzleStore.getState().startVault();
+    expect(abortBackgroundAnalysis).toHaveBeenCalled();
+  });
+
   it('loads a vault entry as a single-move puzzle', () => {
     useBlunderVaultStore.setState({
       entries: [{

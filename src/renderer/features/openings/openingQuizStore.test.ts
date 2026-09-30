@@ -1,11 +1,25 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { useOpeningQuizStore } from './openingQuizStore';
+import { playerTurnCount, useOpeningQuizStore } from './openingQuizStore';
 import type { CuratedOpening } from './curatedOpenings';
 
 const opening: CuratedOpening = { name: 'Italian Game', eco: 'C50', sequence: ['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1c4'] };
 
 beforeEach(() => {
   useOpeningQuizStore.getState().exit();
+});
+
+describe('playerTurnCount', () => {
+  it('rounds up for White, who moves first in every pair', () => {
+    expect(playerTurnCount(5, 'w')).toBe(3); // e4 Nf3 Bc4 — White's 3 of 5 plies
+  });
+
+  it('rounds down for Black, whose turn is always the second of each pair', () => {
+    expect(playerTurnCount(5, 'b')).toBe(2); // e5 Nc6 — Black's 2 of 5 plies
+  });
+
+  it('is zero for Black on a 1-ply line — nothing is ever asked of the player', () => {
+    expect(playerTurnCount(1, 'b')).toBe(0);
+  });
 });
 
 describe('start', () => {
@@ -42,6 +56,14 @@ describe('submitMove', () => {
     expect(state.correctCount).toBe(0);
     expect(state.step).toBe(0); // stays put — line is not advanced by a wrong guess
     expect(state.lastWrong).toEqual({ san: expect.any(String), bookSan: expect.any(String) });
+  });
+
+  it('does not count a step correct if it was only found after a wrong guess', () => {
+    useOpeningQuizStore.getState().start(opening, 'w');
+    useOpeningQuizStore.getState().submitMove({ from: 'd2', to: 'd4' }); // wrong guess at step 0
+    useOpeningQuizStore.getState().submitMove({ from: 'e2', to: 'e4' }); // then the actual book move
+    expect(useOpeningQuizStore.getState().correctCount).toBe(0);
+    expect(useOpeningQuizStore.getState().step).toBe(2); // still advances the line...
   });
 
   it('is a no-op when called on the opponent\'s turn or once the quiz is done', () => {

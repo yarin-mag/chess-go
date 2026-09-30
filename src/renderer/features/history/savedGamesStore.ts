@@ -17,8 +17,9 @@ export interface SavedGame {
 
 interface SavedGamesState {
   games: SavedGame[];
-  /** Prepends a finished game (most recent first) and caps the log so localStorage never grows unbounded. */
-  saveGame(config: GameConfig, history: MoveRecord[], result: GameResult): void;
+  /** Prepends a finished game (most recent first), caps the log so localStorage never grows unbounded,
+   *  and returns the fresh id it assigned — the caller's own handle on this exact saved game. */
+  saveGame(config: GameConfig, history: MoveRecord[], result: GameResult): string;
   deleteGame(id: string): void;
   clearSaved(): void;
 }
@@ -36,6 +37,7 @@ export const useSavedGamesStore = create<SavedGamesState>()(
           result,
         };
         set({ games: [entry, ...get().games].slice(0, MAX_SAVED_GAMES) });
+        return entry.id;
       },
       deleteGame(id) {
         set({ games: get().games.filter((g) => g.id !== id) });
