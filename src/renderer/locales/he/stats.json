@@ -33,5 +33,10 @@
   "moveQuality": "איכות המהלכים",
   "mistakeRateByPhase": "שיעור טעויות לפי שלב",
   "recurringMistakes": "טעויות חוזרות",
-  "clearHistory": "נקה היסטוריה"
+  "clearHistory": "נקה היסטוריה",
+  "summaryClean": "משחק נקי — אין טעויות משמעותיות לציין.",
+  "summaryOneRoughPhase": "הקושי הגדול ביותר שלך היה ב{{phase}}.",
+  "summaryMultipleRoughPhases": "התקשית בכמה שלבים: {{phases}}.",
+  "summaryTopMistake": "לרוב זה נבע מ{{tagPhrase}}.",
+  "summaryHadBrilliancy": "גם מצאת לפחות מהלך מבריק אחד — עבודה יפה."
 }

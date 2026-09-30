@@ -32,5 +32,10 @@
   "moveQuality": "Move quality",
   "mistakeRateByPhase": "Mistake rate by phase",
   "recurringMistakes": "Recurring mistakes",
-  "clearHistory": "Clear history"
+  "clearHistory": "Clear history",
+  "summaryClean": "Clean game — no real mistakes to point out.",
+  "summaryOneRoughPhase": "Your roughest patch was the {{phase}} phase.",
+  "summaryMultipleRoughPhases": "You had trouble in a few phases: {{phases}}.",
+  "summaryTopMistake": "Most often it came down to {{tagPhrase}}.",
+  "summaryHadBrilliancy": "You also found at least one brilliant move — nice work."
 }

@@ -96,7 +96,7 @@ export function biggestWeakness(games: RecordedGame[]): string | null {
   return t('stats:insightWithTag', { phaseText, tagPhrase, count: tags[0].count });
 }
 
-const TAG_PHRASE_KEY: Partial<Record<ExplanationTag, string>> = {
+export const TAG_PHRASE_KEY: Partial<Record<ExplanationTag, string>> = {
   hangsPiece: 'tagPhrase_hangsPiece',
   missedMate: 'tagPhrase_missedMate',
   walksIntoMate: 'tagPhrase_walksIntoMate',

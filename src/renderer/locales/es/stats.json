@@ -32,5 +32,10 @@
   "moveQuality": "Calidad de movimientos",
   "mistakeRateByPhase": "Tasa de errores por fase",
   "recurringMistakes": "Errores recurrentes",
-  "clearHistory": "Borrar historial"
+  "clearHistory": "Borrar historial",
+  "summaryClean": "Partida limpia — sin errores importantes que señalar.",
+  "summaryOneRoughPhase": "Tu momento más flojo fue en la fase de {{phase}}.",
+  "summaryMultipleRoughPhases": "Tuviste dificultades en varias fases: {{phases}}.",
+  "summaryTopMistake": "Casi siempre por {{tagPhrase}}.",
+  "summaryHadBrilliancy": "También encontraste al menos un movimiento brillante — buen trabajo."
 }
