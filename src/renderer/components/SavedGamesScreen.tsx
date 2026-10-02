@@ -51,7 +51,7 @@ export function SavedGamesScreen({ onExit }: Props) {
             <li key={g.id} className={styles.row}>
               <button
                 className={styles.rowMain}
-                onClick={() => startReview(g.config, g.history, { recordStats: false })}
+                onClick={() => startReview(g.config, g.history, { recordStats: false, sourceGameId: g.id })}
               >
                 <span className={styles.rowDate}>{new Date(g.playedAt).toLocaleString()}</span>
                 <span className={styles.rowDetail}>

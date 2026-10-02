@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useReviewStore } from './reviewStore';
 import { useGameHistoryStore } from '@/features/history/gameHistoryStore';
+import { clearAnalysisCache, setCachedAnalysis } from './analysisCache';
 import { UNTIMED } from '@/features/clock/presets';
 import type { MoveRecord } from '@/core/types';
 
@@ -34,6 +35,7 @@ describe('reviewStore', () => {
   beforeEach(() => {
     localStorage.clear();
     useGameHistoryStore.setState({ games: [] });
+    clearAnalysisCache();
   });
   afterEach(() => useReviewStore.getState().exit());
 
@@ -83,5 +85,32 @@ describe('reviewStore', () => {
     useReviewStore.getState().start(config, fakeHistory(2), { recordStats: false });
     await vi.waitFor(() => expect(useReviewStore.getState().status).toBe('ready'));
     expect(useGameHistoryStore.getState().games).toHaveLength(0);
+  });
+
+  // Re-grading the same game every time Review opens (right after finishing, or again later from Saved
+  // Games) is exactly the "doesn't cache, re-grades every time" complaint — backgroundAnalysisQueue
+  // already computes this once per game for the blunder vault; reviewStore should reuse that instead of
+  // re-running analyzeGame from scratch when a sourceGameId is given and already cached.
+  it('uses a cached analysis instead of calling analyzeGame again when sourceGameId is already cached', async () => {
+    const cached = [{ ply: 0, move: fakeHistory(1)[0], tier: 'best' as const, tags: [] }] as never;
+    setCachedAnalysis('g1', cached);
+    const { analyzeGame } = await import('./analyzeGame');
+    vi.mocked(analyzeGame).mockClear(); // only earlier tests' calls accumulated on this shared mock
+    useReviewStore.getState().start(config, fakeHistory(1), { sourceGameId: 'g1' });
+    expect(useReviewStore.getState().status).toBe('ready'); // no 'analyzing' wait — it's synchronous from cache
+    expect(useReviewStore.getState().analysis).toBe(cached);
+    expect(analyzeGame).not.toHaveBeenCalled();
+  });
+
+  it('caches a freshly computed analysis under sourceGameId so a later start() reuses it', async () => {
+    useReviewStore.getState().start(config, fakeHistory(2), { sourceGameId: 'g2' });
+    await vi.waitFor(() => expect(useReviewStore.getState().status).toBe('ready'));
+    useReviewStore.getState().exit();
+
+    const { analyzeGame } = await import('./analyzeGame');
+    vi.mocked(analyzeGame).mockClear();
+    useReviewStore.getState().start(config, fakeHistory(2), { sourceGameId: 'g2' });
+    expect(useReviewStore.getState().status).toBe('ready'); // served from cache, not 'analyzing'
+    expect(analyzeGame).not.toHaveBeenCalled();
   });
 });

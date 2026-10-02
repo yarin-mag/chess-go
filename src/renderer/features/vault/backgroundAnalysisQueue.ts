@@ -1,5 +1,6 @@
 import type { Color, MoveRecord } from '@/core/types';
 import { analyzeGame } from '@/features/review/analyzeGame';
+import { setCachedAnalysis } from '@/features/review/analysisCache';
 import { extractVaultEntries, useBlunderVaultStore } from './blunderVaultStore';
 
 interface QueueItem {
@@ -39,6 +40,9 @@ async function runNext(): Promise<void> {
   try {
     const analysis = await analyzeGame(item.fen, item.history, () => {}, localController.signal);
     if (localController.signal.aborted) return;
+    // This is the only place this exact analysis ever gets computed for this game — caching it here is
+    // what lets Review reuse it instead of recomputing it from scratch when opened later.
+    setCachedAnalysis(item.sourceGameId, analysis);
     const entries = extractVaultEntries(item.sourceGameId, analysis, item.humanColors);
     if (entries.length > 0) useBlunderVaultStore.getState().addEntries(entries);
   } catch {

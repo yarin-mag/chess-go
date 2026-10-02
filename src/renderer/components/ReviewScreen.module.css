@@ -33,15 +33,4 @@
   .sidebar {
     height: auto;
   }
-
-  /* Pinned to the bottom of the actual scrolling viewport (body) rather than sitting at the end of the
-     stacked column — TutorPanel's explanation text or a long move list could otherwise push these below
-     the fold, requiring a scroll just to flip the board or leave. */
-  .actions {
-    position: sticky;
-    bottom: 0;
-    padding: 8px 0;
-    background: var(--panel);
-    border-top: 1px solid var(--border);
-  }
 }

@@ -119,6 +119,22 @@ describe('gameStore', () => {
   // Important finding (final whole-branch review): finish() used to enqueue EVERY finished game —
   // including a same-device hotseat game — as kind 'vsComputer'. That's a trivial coin-farming vector
   // once sub-project 2 credits coins for vs-computer wins (two humans trading a scholar's-mate loop).
+  // Lets the "Review" button right after finishing (ControlBar/GameOverModal) pass the just-finished
+  // game's own saved-game id into reviewStore.start(), so it can reuse backgroundAnalysisQueue's
+  // already-computed analysis instead of re-grading the same game from scratch.
+  it('exposes the just-finished game\'s saved id as lastSavedGameId, reset by the next startGame', () => {
+    state().startGame(localConfig());
+    expect(state().lastSavedGameId).toBeNull();
+    play('f2', 'f3');
+    play('e7', 'e5');
+    play('g2', 'g4');
+    play('d8', 'h4'); // checkmate
+    const savedId = useSavedGamesStore.getState().games[0].id;
+    expect(state().lastSavedGameId).toBe(savedId);
+    state().startGame(localConfig());
+    expect(state().lastSavedGameId).toBeNull();
+  });
+
   it('does not enqueue a hotseat human-vs-human game, even when signed in', () => {
     useAuthStore.setState({ status: 'signedIn', accountId: 'acct-1', clerkUserId: 'u1', hasEverAuthenticated: true });
     state().startGame(localConfig()); // both seats 'human' — local hotseat, not vs-computer

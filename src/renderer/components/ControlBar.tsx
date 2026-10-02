@@ -17,8 +17,22 @@ interface Props {
 /** In-game actions. Destructive ones (resign / draw) need a second click to confirm. */
 export function ControlBar({ onOpenSettings }: Props) {
   const { t } = useTranslation();
-  const { status, game, players, history, config, flipped, hintLoading, undo, setFlipped, resign, agreeDraw, requestHint, backToMenu } =
-    useGameStore();
+  const {
+    status,
+    game,
+    players,
+    history,
+    config,
+    flipped,
+    hintLoading,
+    lastSavedGameId,
+    undo,
+    setFlipped,
+    resign,
+    agreeDraw,
+    requestHint,
+    backToMenu,
+  } = useGameStore();
   const startReview = useReviewStore((s) => s.start);
   const onlineConnection = useOnlineStore((s) => s.connection);
   const incomingDrawOffer = useOnlineStore((s) => s.incomingDrawOffer);
@@ -115,7 +129,10 @@ export function ControlBar({ onOpenSettings }: Props) {
       )}
       {isOnline && <ReactionPicker />}
       {status === 'over' && (
-        <button className="btn btn-primary" onClick={() => startReview(config, history)}>
+        <button
+          className="btn btn-primary"
+          onClick={() => startReview(config, history, { sourceGameId: lastSavedGameId ?? undefined })}
+        >
           {t('game:review')}
         </button>
       )}

@@ -46,6 +46,11 @@ export interface GameState {
   clock: Clock;
   players: Record<Color, PlayerController>;
   gameId: number;
+  /** The most recently finished game's own saved-game id (null until one finishes, reset by the next
+   *  startGame) — lets the "Review" button right after finishing pass it to reviewStore.start() so a
+   *  cached analysis (backgroundAnalysisQueue already computed one, for the blunder vault) is reused
+   *  instead of re-grading the same game from scratch. */
+  lastSavedGameId: string | null;
 
   fen: string;
   history: MoveRecord[];
@@ -131,6 +136,8 @@ export const useGameStore = create<GameState>((set, get) => {
         };
         void enqueueOfflineResult({ kind: 'vsComputer', transcript });
       }
+      set({ status: 'over', result, engineThinking: false, lastSavedGameId: savedId, ...noSelection });
+      return;
     }
     set({ status: 'over', result, engineThinking: false, ...noSelection });
   };
@@ -172,6 +179,7 @@ export const useGameStore = create<GameState>((set, get) => {
     clock: toClock(UNTIMED),
     players: { w: createPlayer(HUMAN), b: createPlayer(HUMAN) },
     gameId: 0,
+    lastSavedGameId: null,
 
     fen: new ChessGame().fen(),
     history: [],
@@ -204,6 +212,7 @@ export const useGameStore = create<GameState>((set, get) => {
         history: [],
         lastMove: null,
         result: null,
+        lastSavedGameId: null,
         engineThinking: false,
         // Show the board from the human's side when they play Black — against the computer, or (checked
         // first, since config.white/black aren't 'human'/'engine' for the online seat) online, where the

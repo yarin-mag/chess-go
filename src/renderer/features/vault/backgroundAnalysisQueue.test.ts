@@ -6,6 +6,7 @@ vi.mock('@/features/review/analyzeGame', () => ({
 
 import { analyzeGame } from '@/features/review/analyzeGame';
 import type { ExplanationTag } from '@/engine/explain';
+import { clearAnalysisCache, getCachedAnalysis } from '@/features/review/analysisCache';
 import { useBlunderVaultStore } from './blunderVaultStore';
 import { abortBackgroundAnalysis, enqueueBackgroundAnalysis } from './backgroundAnalysisQueue';
 
@@ -15,6 +16,7 @@ afterEach(() => {
   abortBackgroundAnalysis();
   useBlunderVaultStore.setState({ entries: [], solvedIds: [] });
   vi.mocked(analyzeGame).mockReset();
+  clearAnalysisCache();
 });
 
 const grade = {
@@ -38,6 +40,16 @@ describe('enqueueBackgroundAnalysis', () => {
     await flush();
     expect(useBlunderVaultStore.getState().entries).toHaveLength(1);
     expect(useBlunderVaultStore.getState().entries[0].sourceGameId).toBe('g1');
+  });
+
+  // Reviewing the same game right after it ends (or later, from Saved Games) used to recompute this
+  // exact analysis from scratch every time — this is the one place it's ever actually computed, so it's
+  // the one place that can cache it for Review to reuse instead of discarding it.
+  it('caches the full analysis under the game id so Review can reuse it', async () => {
+    vi.mocked(analyzeGame).mockResolvedValueOnce([grade]);
+    enqueueBackgroundAnalysis({ sourceGameId: 'g1', fen: undefined, history: [], humanColors: ['w'] });
+    await flush();
+    expect(getCachedAnalysis('g1')).toEqual([grade]);
   });
 
   it('runs at most one analysis at a time, queuing the rest', async () => {

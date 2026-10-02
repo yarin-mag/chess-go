@@ -10,7 +10,7 @@ import styles from './GameOverModal.module.css';
 /** Result announcement with rematch / new game / review options. Remount (via key) for each game. */
 export function GameOverModal() {
   const { t } = useTranslation();
-  const { status, result, config, history, players, startGame, backToMenu } = useGameStore();
+  const { status, result, config, history, players, lastSavedGameId, startGame, backToMenu } = useGameStore();
   const startReview = useReviewStore((s) => s.start);
   const [dismissed, setDismissed] = useState(false);
   const close = () => setDismissed(true);
@@ -33,7 +33,10 @@ export function GameOverModal() {
                 {t('game:rematch')}
               </button>
             )}
-            <button className="btn" onClick={() => startReview(config, history)}>
+            <button
+              className="btn"
+              onClick={() => startReview(config, history, { sourceGameId: lastSavedGameId ?? undefined })}
+            >
               {t('game:reviewGame')}
             </button>
             <button

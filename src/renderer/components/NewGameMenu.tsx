@@ -13,6 +13,7 @@ import { useSavedGamesVisibilityStore } from '@/features/history/savedGamesVisib
 import { useOnlineLobbyStore } from '@/features/online/onlineLobbyVisibilityStore';
 import { useGlossaryVisibilityStore } from '@/features/glossary/glossaryVisibilityStore';
 import { Segmented } from './ui/Segmented';
+import { SettingsPanel } from './SettingsPanel';
 import styles from './NewGameMenu.module.css';
 
 type Mode = 'local' | 'computer';
@@ -43,6 +44,7 @@ export function NewGameMenu() {
   const showSavedGames = useSavedGamesVisibilityStore((s) => s.show);
   const showOnlineLobby = useOnlineLobbyStore((s) => s.show);
   const showGlossary = useGlossaryVisibilityStore((s) => s.show);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -178,7 +180,12 @@ export function NewGameMenu() {
         <button className="btn" onClick={showGlossary}>
           {t('common:glossary')}
         </button>
+
+        <button className="btn" onClick={() => setSettingsOpen(true)}>
+          {t('common:settingsTitle')}
+        </button>
       </motion.div>
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
