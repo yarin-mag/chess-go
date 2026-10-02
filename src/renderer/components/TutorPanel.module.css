@@ -11,13 +11,24 @@
   max-height: 340px;
 }
 
+@media (max-width: 820px) {
+  .panel {
+    /* Less to scroll through before reaching .nav, and leaves more of the phone's screen for the move
+       list / actions below it. */
+    max-height: 220px;
+  }
+}
+
 .scrollArea {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  /* The explanation can be long; this is the part that scrolls. .nav lives outside it (a sibling, not a
-     child), so a long explanation can never push Prev/Next below .panel's own 340px cap — previously
-     they were the last children *inside* this same scrolling box and could end up scrolled out of view. */
+  /* flex: 1 is what actually makes this claim "whatever's left of .panel's max-height after .nav" —
+     without it, this box has no bounded height for overflow-y to clip against, grows to fit its content
+     regardless of .panel's cap, and .nav gets pushed below the fold again exactly like before this
+     split existed. min-height: 0 overrides flexbox's default min-height:auto, which otherwise refuses
+     to let a flex item shrink below its content size at all. */
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
