@@ -32,9 +32,9 @@ export function ReviewScreen() {
     <div className={styles.screen}>
       <ReviewBoard flipped={flipped} />
       <aside className={styles.sidebar}>
-        <MoveScrubber index={index} max={history.length - 1} onChange={goTo} />
-        <TutorPanel />
-        <MoveList history={history} onSelectPly={goTo} activePly={index} />
+        {/* Always visible, never requires scrolling to reach — on mobile, anything placed after the
+            tutor panel / move list can end up below the fold until the player scrolls the whole page
+            down, and "how do I leave review" is exactly the question that shouldn't need that. */}
         <div className={styles.actions}>
           <button className="btn" onClick={() => setFlipped((f) => !f)}>
             {t('common:flip')}
@@ -43,6 +43,9 @@ export function ReviewScreen() {
             {t('common:menu')}
           </button>
         </div>
+        <MoveScrubber index={index} max={history.length - 1} onChange={goTo} />
+        <TutorPanel />
+        <MoveList history={history} onSelectPly={goTo} activePly={index} />
       </aside>
     </div>
   );

@@ -51,47 +51,52 @@ export function TutorPanel() {
 
   return (
     <div className={styles.panel}>
-      {summary.length > 0 && (
-        <div className={styles.summary}>
-          {summary.map((s, i) => (
-            <p key={i}>{s}</p>
-          ))}
+      {/* Only this part scrolls when the explanation is long — nav stays outside it, in .panel's own
+          flex flow, so it's never scrolled out of reach (it used to live inside this same scrolling
+          box, which meant a long explanation could push Prev/Next below the panel's own scroll area). */}
+      <div className={styles.scrollArea}>
+        {summary.length > 0 && (
+          <div className={styles.summary}>
+            {summary.map((s, i) => (
+              <p key={i}>{s}</p>
+            ))}
+          </div>
+        )}
+        <div className={styles.header}>
+          <span className={styles.moveNumber}>{index >= 0 ? t('tutor:moveNumber', { n: index + 1 }) : t('tutor:startPosition')}</span>
+          {current && <span className={`${styles.tier} ${styles[current.tier]}`}>{t(`stats:tier_${current.tier}`)}</span>}
         </div>
-      )}
-      <div className={styles.header}>
-        <span className={styles.moveNumber}>{index >= 0 ? t('tutor:moveNumber', { n: index + 1 }) : t('tutor:startPosition')}</span>
-        {current && <span className={`${styles.tier} ${styles[current.tier]}`}>{t(`stats:tier_${current.tier}`)}</span>}
-      </div>
 
-      <div className={styles.body}>
-        <EvalBar scoreForWhite={current ? (current.move.color === 'w' ? current.playedScore : -current.playedScore) : 0} />
-        <div className={styles.text}>
-          {current?.opening && (
-            <p className={styles.opening}>
-              {current.opening.eco} · {current.opening.name}
-            </p>
-          )}
-          {current ? (
-            <>
-              <ExpandableMove key={`played-${current.ply}`} label={t('tutor:played')} san={current.move.san} detail={describeMove(current.move)} />
-              <p className={styles.tagLine}>
-                {current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
-                <button className={styles.whyBtn} onClick={() => setReasonOpen(true)}>
-                  {t('common:why')}
-                </button>
+        <div className={styles.body}>
+          <EvalBar scoreForWhite={current ? (current.move.color === 'w' ? current.playedScore : -current.playedScore) : 0} />
+          <div className={styles.text}>
+            {current?.opening && (
+              <p className={styles.opening}>
+                {current.opening.eco} · {current.opening.name}
               </p>
-              {current.tier !== 'best' && current.tier !== 'brilliant' && (
-                <ExpandableMove
-                  key={`best-${current.ply}`}
-                  label={t('tutor:bestWas')}
-                  san={current.bestSan}
-                  detail={describePotentialMove(current.fenBefore, current.bestMove)}
-                />
-              )}
-            </>
-          ) : (
-            <p>{t('tutor:startPositionHint')}</p>
-          )}
+            )}
+            {current ? (
+              <>
+                <ExpandableMove key={`played-${current.ply}`} label={t('tutor:played')} san={current.move.san} detail={describeMove(current.move)} />
+                <p className={styles.tagLine}>
+                  {current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
+                  <button className={styles.whyBtn} onClick={() => setReasonOpen(true)}>
+                    {t('common:why')}
+                  </button>
+                </p>
+                {current.tier !== 'best' && current.tier !== 'brilliant' && (
+                  <ExpandableMove
+                    key={`best-${current.ply}`}
+                    label={t('tutor:bestWas')}
+                    san={current.bestSan}
+                    detail={describePotentialMove(current.fenBefore, current.bestMove)}
+                  />
+                )}
+              </>
+            ) : (
+              <p>{t('tutor:startPositionHint')}</p>
+            )}
+          </div>
         </div>
       </div>
 
