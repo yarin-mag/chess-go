@@ -25,6 +25,14 @@ import { useWeaknessDashboardStore } from './features/history/weaknessDashboardS
 import { usePuzzleStore } from './features/puzzle/puzzleStore';
 import { useReviewStore } from './features/review/reviewStore';
 
+/** Dev-only escape hatch: skip Clerk entirely and act as a fixed fake test account. `import.meta.env.DEV`
+ *  is statically false in any `build`/`build:web` output, so this branch is dead-code-eliminated out of
+ *  every real bundle regardless of what env vars happen to be set — it cannot exist in a shipped build.
+ *  Exists so the app can be opened on a second device (e.g. a phone over LAN) without needing Clerk's
+ *  OAuth redirect to resolve correctly from that device — Clerk's dev instance redirects back to the
+ *  literal origin registered during `clerk init` (typically localhost), which a phone can never reach. */
+const DEV_SKIP_AUTH = import.meta.env.DEV && import.meta.env.VITE_DEV_SKIP_AUTH === '1';
+
 export function App() {
   // Every hook this component can possibly need is called unconditionally, every render — the auth
   // gate branches only *after* all of them have run. Returning early between hook calls (as an
@@ -43,6 +51,10 @@ export function App() {
   // simply never fire, leaving the app stuck showing nothing. Living here, on a component that's always
   // mounted regardless of what decideGate returns, this has no such window.
   useEffect(() => {
+    if (DEV_SKIP_AUTH) {
+      setSignedIn('dev-test-account', 'dev-test-user');
+      return;
+    }
     if (!isLoaded) {
       // Don't stomp a cached signed-in identity while Clerk is still loading (or unreachable, e.g.
       // offline) — authStore already started 'signedIn' from the cached accountId for exactly this
@@ -67,7 +79,8 @@ export function App() {
   }, [isLoaded, isSignedIn, getToken, setChecking, setSignedOut, setSignedIn]);
 
   useEffect(() => {
-    if (!(isOnline && status === 'signedIn')) return;
+    // No real identity, no real server to drain to — nothing to sync in dev-bypass mode.
+    if (DEV_SKIP_AUTH || !(isOnline && status === 'signedIn')) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     // syncOfflineQueue owns no timers of its own (keeps its own tests leak-free) — this effect is
