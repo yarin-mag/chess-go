@@ -68,7 +68,8 @@
     /* Narrower than the shared default in global.css (which Review/Puzzle also use, at their own 16px
        padding): this screen's move list hides behind a collapsible toggle, so it can afford the tighter
        4px+4px gutter above without the board colliding with anything. */
-    --board-size: min(calc(100vw - 8px), 82vh);
+    /* dvh, not vh — see global.css's mobile --board-size for why. */
+    --board-size: min(calc(100vw - 8px), 82dvh);
   }
 
   .sidebar {
@@ -79,6 +80,6 @@
   /* Collapsed (the default) frees up vertical space the vh cap above doesn't otherwise use, so let the
      board grow a little further still; shrinks back the moment the player expands the list. */
   .screen[data-moves-collapsed='true'] {
-    --board-size: min(calc(100vw - 8px), 88vh);
+    --board-size: min(calc(100vw - 8px), 88dvh);
   }
 }

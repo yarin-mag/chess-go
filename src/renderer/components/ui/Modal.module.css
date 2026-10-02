@@ -11,7 +11,7 @@
 .card {
   min-width: 340px;
   max-width: min(460px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px); /* tracks the real visible viewport on mobile */
   overflow-y: auto;
   padding: 28px;
   border: 1px solid var(--border);

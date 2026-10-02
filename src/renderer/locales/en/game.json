@@ -20,6 +20,8 @@
   "noMovesYet": "No moves yet",
   "movePairBlack": "{{number}}...{{san}}",
   "movePairWhite": "{{number}}. {{san}}",
+  "scrubberLabel": "Jump to move",
+  "scrubberPosition": "{{current}} / {{total}}",
   "playerComputer": "Computer · {{level}}",
   "playerYou": "You",
   "drawStalemate": "Stalemate",

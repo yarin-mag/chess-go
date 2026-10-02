@@ -20,6 +20,8 @@
   "noMovesYet": "אין עדיין מהלכים",
   "movePairBlack": "{{number}}...{{san}}",
   "movePairWhite": "{{number}}. {{san}}",
+  "scrubberLabel": "קפיצה למהלך",
+  "scrubberPosition": "{{current}} / {{total}}",
   "playerComputer": "מחשב · {{level}}",
   "playerYou": "אתה",
   "drawStalemate": "פט",

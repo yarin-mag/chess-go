@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useGameStore } from '@/features/game/gameStore';
 import { useReviewStore } from '@/features/review/reviewStore';
 import { MoveList } from './MoveList';
+import { MoveScrubber } from './MoveScrubber';
 import { ReviewBoard } from './ReviewBoard';
 import { TutorPanel } from './TutorPanel';
 import styles from './ReviewScreen.module.css';
@@ -31,6 +32,7 @@ export function ReviewScreen() {
     <div className={styles.screen}>
       <ReviewBoard flipped={flipped} />
       <aside className={styles.sidebar}>
+        <MoveScrubber index={index} max={history.length - 1} onChange={goTo} />
         <TutorPanel />
         <MoveList history={history} onSelectPly={goTo} activePly={index} />
         <div className={styles.actions}>

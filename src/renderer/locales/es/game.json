@@ -20,6 +20,8 @@
   "noMovesYet": "Aún no hay movimientos",
   "movePairBlack": "{{number}}...{{san}}",
   "movePairWhite": "{{number}}. {{san}}",
+  "scrubberLabel": "Ir a la jugada",
+  "scrubberPosition": "{{current}} / {{total}}",
   "playerComputer": "Computadora · {{level}}",
   "playerYou": "Tú",
   "drawStalemate": "Rey ahogado",

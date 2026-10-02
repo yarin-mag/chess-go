@@ -28,8 +28,12 @@
     /* The board is square, so on phones it's the width that limits how big it can be, not the vh figure —
        the viewport is always much taller than it is wide. A tight gutter here is what actually grows it.
        (GameScreen overrides this further still — its move list collapses behind a toggle, which affords
-       an even narrower gutter than Review/Puzzle can safely use.) */
-    --board-size: min(calc(100vw - 32px), 82vh);
+       an even narrower gutter than Review/Puzzle can safely use.)
+       dvh (dynamic viewport height), not vh: vh is the LARGEST possible viewport (address bar hidden),
+       so sizing against it on a mobile browser overflows the page by however tall the address bar is —
+       content at the bottom (e.g. Review screen's action buttons) ends up just past the actually-visible
+       area, looking cut off even though the page technically scrolls. dvh tracks the real visible height. */
+    --board-size: min(calc(100vw - 32px), 82dvh);
   }
 
   body {
