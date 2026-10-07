@@ -50,6 +50,27 @@ describe('gameStore', () => {
     vi.mocked(enqueueOfflineResult).mockClear();
   });
 
+  it('resumeGame re-enters a game backToMenu paused, leaving history intact', () => {
+    state().startGame(localConfig());
+    play('e2', 'e4');
+    state().backToMenu();
+    expect(state().status).toBe('menu');
+    expect(state().history).toHaveLength(1); // backToMenu doesn't clear it
+
+    state().resumeGame();
+    expect(state().status).toBe('playing');
+    expect(state().history).toHaveLength(1);
+  });
+
+  it('resumeGame is a no-op once the game is actually over', () => {
+    state().startGame(localConfig());
+    state().resign('w');
+    expect(state().status).toBe('over');
+
+    state().resumeGame();
+    expect(state().status).toBe('over');
+  });
+
   it('alternates turns and records history', () => {
     state().startGame(localConfig());
     play('e2', 'e4');

@@ -6,6 +6,8 @@ import { useReviewStore } from '@/features/review/reviewStore';
 import { phraseFor, reasonFor } from '@/engine/explain';
 import { EvalBar } from './EvalBar';
 import { ReasonModal } from './ReasonModal';
+import { CoachBubble } from './ui/CoachBubble';
+import { Pill } from './ui/Pill';
 import styles from './TutorPanel.module.css';
 
 /** A move name with a toggle that reveals its plain-English meaning ("The knight on b8 moves to c6."). */
@@ -78,12 +80,14 @@ export function TutorPanel() {
             {current ? (
               <>
                 <ExpandableMove key={`played-${current.ply}`} label={t('tutor:played')} san={current.move.san} detail={describeMove(current.move)} />
-                <p className={styles.tagLine}>
-                  {current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
-                  <button className={styles.whyBtn} onClick={() => setReasonOpen(true)}>
-                    {t('common:why')}
-                  </button>
-                </p>
+                <CoachBubble>
+                  <span className={styles.tagLine}>
+                    {current.tags.map((tag, i) => phraseFor(tag, current.tier, current.move.san, current.ply + i)).join(' ')}
+                    <button className={styles.whyBtn} onClick={() => setReasonOpen(true)}>
+                      {t('common:why')}
+                    </button>
+                  </span>
+                </CoachBubble>
                 {current.tier !== 'best' && current.tier !== 'brilliant' && (
                   <ExpandableMove
                     key={`best-${current.ply}`}
@@ -101,12 +105,12 @@ export function TutorPanel() {
       </div>
 
       <div className={styles.nav}>
-        <button className="btn" disabled={index <= -1} onClick={() => goTo(index - 1)}>
+        <Pill variant="secondary" disabled={index <= -1} onClick={() => goTo(index - 1)}>
           {t('tutor:prev')}
-        </button>
-        <button className="btn" disabled={index >= history.length - 1} onClick={() => goTo(index + 1)}>
+        </Pill>
+        <Pill variant="primary" disabled={index >= history.length - 1} onClick={() => goTo(index + 1)}>
           {t('tutor:next')}
-        </button>
+        </Pill>
       </div>
 
       {current && (

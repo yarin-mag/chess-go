@@ -4,7 +4,8 @@ import { GLOSSARY_KEYS } from '@/features/glossary/glossaryTerms';
 import styles from './GlossaryScreen.module.css';
 
 interface Props {
-  onExit: () => void;
+  /** Omitted when embedded as a tab (Learn) rather than opened as a standalone overlay. */
+  onExit?: () => void;
 }
 
 export function GlossaryScreen({ onExit }: Props) {
@@ -43,9 +44,11 @@ export function GlossaryScreen({ onExit }: Props) {
             </div>
           ))}
         </div>
-        <button className="btn" onClick={onExit}>
-          {t('common:menu')}
-        </button>
+        {onExit && (
+          <button className="btn" onClick={onExit}>
+            {t('common:menu')}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -3,9 +3,10 @@ import { t } from '@/i18n';
 import { opposite, type Color, type TimeControl } from '@/core/types';
 import { useGameStore } from '@/features/game/gameStore';
 import { RemotePlayer } from '@/features/game/players';
+import { useChatStore } from './chatStore';
 import { useOnlineLobbyStore } from './onlineLobbyVisibilityStore';
 import { hostRoom, joinRoom, JOIN_TIMEOUT_MS, ROOM_UNREACHABLE, type OnlineConnection } from './peerConnection';
-import { isKnownReaction, type NetworkMessage, type ReactionKey } from './protocol';
+import { isKnownReaction, sanitizeChatText, type NetworkMessage, type ReactionKey } from './protocol';
 import { useReactionStore } from './reactionStore';
 
 type OnlineStatus = 'idle' | 'hosting' | 'joining' | 'connected' | 'error';
@@ -25,6 +26,7 @@ interface OnlineState {
   clearDrawOffer(): void;
   sendDrawOffer(): void;
   sendReaction(key: ReactionKey): void;
+  sendChat(text: string): void;
   leave(): void;
 }
 
@@ -83,6 +85,7 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
   };
 
   const enterGame = (connection: OnlineConnection, localColor: Color, timeControl: TimeControl) => {
+    useChatStore.getState().clear(); // a fresh game starts with an empty chat log, never the last one's
     attachSharedListeners(connection);
     const remotePlayer = new RemotePlayer(connection);
     set({ status: 'connected', connection, localColor });
@@ -166,14 +169,25 @@ export const useOnlineStore = create<OnlineState>((set, get) => {
       const { connection } = get();
       if (!connection || !isKnownReaction(key)) return;
       connection.send({ type: 'reaction', key });
+      const text = t(`online:reaction_${key}`);
       // the sender sees their own reaction pop too, not just the receiver — shown in the sender's own locale
-      useReactionStore.getState().show(t(`online:reaction_${key}`));
+      useReactionStore.getState().show(text, key);
+      useChatStore.getState().add({ from: 'me', at: Date.now(), kind: 'reaction', text, reactionKey: key });
+    },
+
+    sendChat(text) {
+      const { connection } = get();
+      const clean = sanitizeChatText(text);
+      if (!connection || !clean) return;
+      connection.send({ type: 'chat', text: clean });
+      useChatStore.getState().add({ from: 'me', at: Date.now(), kind: 'text', text: clean });
     },
 
     leave() {
       inFlight?.abort();
       inFlight = null;
       get().connection?.close();
+      useChatStore.getState().clear();
       set({
         status: 'idle',
         roomCode: null,

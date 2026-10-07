@@ -5,10 +5,12 @@ vi.mock('@/features/sync/offlineQueueStore', () => ({ enqueueOfflineResult: vi.f
 
 import { enqueueOfflineResult } from '@/features/sync/offlineQueueStore';
 import { useAuthStore } from '@/features/auth/authStore';
+import { useWalletStore } from '@/features/shop/walletStore';
 
 describe('puzzleProgressStore', () => {
   beforeEach(() => {
     localStorage.clear();
+    useWalletStore.setState({ coins: 0 });
     usePuzzleProgressStore.setState({
       furthestStage: 0,
       furthestPuzzleIndex: 0,
@@ -84,6 +86,30 @@ describe('puzzleProgressStore', () => {
     vi.mocked(enqueueOfflineResult).mockClear();
     usePuzzleProgressStore.getState().markSolved(0, 1); // replaying an earlier puzzle — no real progress
     expect(enqueueOfflineResult).not.toHaveBeenCalled();
+  });
+
+  describe('coin rewards', () => {
+    it('pays a per-puzzle reward for a genuine solve', () => {
+      usePuzzleProgressStore.getState().markSolved(0, 1);
+      expect(useWalletStore.getState().coins).toBe(10);
+    });
+
+    it('does not pay for replaying an earlier puzzle', () => {
+      usePuzzleProgressStore.getState().markSolved(2, 5);
+      useWalletStore.setState({ coins: 0 });
+      usePuzzleProgressStore.getState().markSolved(0, 1);
+      expect(useWalletStore.getState().coins).toBe(0);
+    });
+
+    it('pays the stage bonus on top of the puzzle reward when reaching a new stage', () => {
+      usePuzzleProgressStore.getState().markSolved(1, 0); // stage 0 -> 1
+      expect(useWalletStore.getState().coins).toBe(10 + 100);
+    });
+
+    it('pays the daily-puzzle reward separately from ladder solves', () => {
+      usePuzzleProgressStore.getState().recordDailySolve();
+      expect(useWalletStore.getState().coins).toBe(25);
+    });
   });
 
   describe('recordRushScore', () => {

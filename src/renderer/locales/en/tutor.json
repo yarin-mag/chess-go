@@ -22,6 +22,7 @@
   "reason_solid_best": "{{san}} is the move the engine itself would play — the top-ranked choice out of every legal option in this position. That doesn't mean it's the only good move, just the one that gives away the least (or wins the most).",
   "reason_solid_brilliant": "{{san}} is a sacrifice the engine confirms is objectively sound — material was given up on purpose, but the resulting position is at least as good thanks to a follow-up (a mating attack, winning back more material, or a dominant position) that outweighs what was given.",
   "moveNumber": "Move {{n}}",
+  "timelineLabel": "Jump to move",
   "startPosition": "Start position",
   "startPositionHint": "Starting position. Swipe or use the arrow keys to step through the game.",
   "played": "Played:",

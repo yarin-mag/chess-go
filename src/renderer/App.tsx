@@ -2,15 +2,20 @@ import { useAuth } from '@clerk/react';
 import { useEffect } from 'react';
 import { AuthGateScreen } from './components/AuthGateScreen';
 import { OfflineBlockedScreen } from './components/OfflineBlockedScreen';
+import { FriendsScreen } from './components/FriendsScreen';
 import { GameScreen } from './components/GameScreen';
 import { GlossaryScreen } from './components/GlossaryScreen';
-import { NewGameMenu } from './components/NewGameMenu';
+import { HomeScreen } from './components/HomeScreen';
+import { LearnScreen } from './components/LearnScreen';
+import { MeScreen } from './components/MeScreen';
 import { OnlineLobbyScreen } from './components/OnlineLobbyScreen';
 import { OpeningExplorerScreen } from './components/OpeningExplorerScreen';
 import { PuzzleMapScreen } from './components/PuzzleMapScreen';
 import { PuzzleScreen } from './components/PuzzleScreen';
 import { ReviewScreen } from './components/ReviewScreen';
 import { SavedGamesScreen } from './components/SavedGamesScreen';
+import { ShopScreen } from './components/ShopScreen';
+import { TabBar } from './components/TabBar';
 import { WeaknessDashboardScreen } from './components/WeaknessDashboardScreen';
 import { decideGate } from './features/auth/authGate';
 import { useAuthStore } from './features/auth/authStore';
@@ -18,12 +23,14 @@ import { useOnlineStatus } from './features/auth/useOnlineStatus';
 import { syncOfflineQueue } from './features/sync/syncClient';
 import { useGameStore } from './features/game/gameStore';
 import { useGlossaryVisibilityStore } from './features/glossary/glossaryVisibilityStore';
+import { useNavStore } from './features/nav/navStore';
 import { useOpeningExplorerStore } from './features/openings/openingExplorerStore';
 import { useOnlineLobbyStore } from './features/online/onlineLobbyVisibilityStore';
 import { useSavedGamesVisibilityStore } from './features/history/savedGamesVisibilityStore';
 import { useWeaknessDashboardStore } from './features/history/weaknessDashboardStore';
 import { usePuzzleStore } from './features/puzzle/puzzleStore';
 import { useReviewStore } from './features/review/reviewStore';
+import styles from './App.module.css';
 
 /** Dev-only escape hatch: skip Clerk entirely and act as a fixed fake test account. `import.meta.env.DEV`
  *  is statically false in any `build`/`build:web` output, so this branch is dead-code-eliminated out of
@@ -122,6 +129,7 @@ export function App() {
   const hideSavedGames = useSavedGamesVisibilityStore((s) => s.hide);
   const hideGlossary = useGlossaryVisibilityStore((s) => s.hide);
   const hideOnlineLobby = useOnlineLobbyStore((s) => s.hide);
+  const tab = useNavStore((s) => s.tab);
 
   const gate = decideGate({ hasEverAuthenticated, status, isOnline });
   if (gate === 'checking') return null;
@@ -139,5 +147,22 @@ export function App() {
   if (viewingSavedGames) return <SavedGamesScreen onExit={hideSavedGames} />;
   if (viewingGlossary) return <GlossaryScreen onExit={hideGlossary} />;
   if (showingOnlineLobby) return <OnlineLobbyScreen onExit={hideOnlineLobby} />;
-  return inMenu ? <NewGameMenu /> : <GameScreen />;
+  // A game that's actually in progress (or just ended) still owns the whole screen — the tab bar only
+  // ever applies once the player is back at the top level (gameStore.backToMenu, called from
+  // ControlBar's "Menu" button, is a pause: fen/history survive, so HomeScreen's "Resume my game" can
+  // bring it back via resumeGame()).
+  if (!inMenu) return <GameScreen />;
+
+  return (
+    <div className={`round3 ${styles.shell}`}>
+      <div className={styles.tabContent}>
+        {tab === 'home' && <HomeScreen />}
+        {tab === 'learn' && <LearnScreen />}
+        {tab === 'friends' && <FriendsScreen />}
+        {tab === 'shop' && <ShopScreen />}
+        {tab === 'me' && <MeScreen />}
+      </div>
+      <TabBar />
+    </div>
+  );
 }

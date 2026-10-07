@@ -1,0 +1,142 @@
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 22px 20px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--avatar);
+  box-shadow:
+    0 0 0 3px var(--bg-tabbar),
+    0 0 0 5px var(--coral);
+  font-size: 26px;
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.gearButton {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 6px;
+}
+
+.walletRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--surface-ring);
+}
+
+.loadoutRow {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.loadoutInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.loadoutSlot {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.loadoutItem {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.empty {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+}
+
+.recentRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.recentLetter {
+  width: 28px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.letterW {
+  color: var(--tier-best);
+}
+
+.letterL {
+  color: var(--tier-blunder);
+}
+
+.letterD {
+  color: var(--muted-2);
+}
+
+.recentOpponent {
+  flex: 1;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.recentMeta {
+  font-size: 13px;
+  color: var(--muted);
+}

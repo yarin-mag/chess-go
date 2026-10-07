@@ -1,0 +1,43 @@
+.row {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+}
+
+.bar {
+  flex: 1;
+  min-width: 2px;
+  border: none;
+  border-radius: 2px;
+  padding: 0;
+  cursor: pointer;
+  background: var(--tier-good, rgba(243, 236, 220, 0.3));
+}
+
+.current {
+  box-shadow: 0 0 0 1.5px var(--cream, #efe6cf);
+}
+
+.brilliant {
+  background: var(--tier-brilliant, #2dd4bf);
+}
+
+.best {
+  background: var(--tier-best, #4ade80);
+}
+
+.good {
+  background: var(--tier-good, rgba(243, 236, 220, 0.4));
+}
+
+.inaccuracy {
+  background: var(--tier-inaccuracy, #facc15);
+}
+
+.mistake {
+  background: var(--tier-mistake, #fb923c);
+}
+
+.blunder {
+  background: var(--tier-blunder, #f87171);
+}

@@ -6,7 +6,9 @@ import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
 import styles from './PuzzleMapScreen.module.css';
 
 interface Props {
-  onExit: () => void;
+  /** Omitted when embedded as a tab (Learn) rather than opened as a standalone overlay — hides the
+   *  "Menu" exit button, since there's nowhere to exit to. */
+  onExit?: () => void;
 }
 
 export function PuzzleMapScreen({ onExit }: Props) {
@@ -85,9 +87,11 @@ export function PuzzleMapScreen({ onExit }: Props) {
           })}
         </ol>
 
-        <button className="btn" onClick={onExit}>
-          {t('common:menu')}
-        </button>
+        {onExit && (
+          <button className="btn" onClick={onExit}>
+            {t('common:menu')}
+          </button>
+        )}
       </div>
     </div>
   );

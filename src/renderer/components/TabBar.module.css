@@ -1,0 +1,62 @@
+.bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 8px 6px 26px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-tabbar);
+  flex: none;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-2);
+  font: inherit;
+  font-family: var(--font-display);
+}
+
+.topBar {
+  position: absolute;
+  top: -9px;
+  left: 26%;
+  right: 26%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: transparent;
+}
+
+.topBarActive {
+  background: var(--coral-tabbar);
+}
+
+.iconPill {
+  width: 58px;
+  height: 32px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: inherit;
+}
+
+.iconPillActive {
+  background: rgba(243, 236, 220, 0.14);
+  color: var(--text);
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.labelActive {
+  font-weight: 700;
+  color: var(--text);
+}

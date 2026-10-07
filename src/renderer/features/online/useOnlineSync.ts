@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { t } from '@/i18n';
 import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
+import { useChatStore } from './chatStore';
 import { useOnlineStore } from './onlineStore';
-import { isKnownReaction } from './protocol';
+import { isKnownReaction, sanitizeChatText } from './protocol';
 import { useReactionStore } from './reactionStore';
 
 /**
@@ -52,8 +53,13 @@ export function useOnlineSync(): void {
       } else if (msg.type === 'drawResponse' && msg.accepted) {
         useGameStore.getState().agreeDraw();
       } else if (msg.type === 'reaction') {
-        const text = reactionText(msg.key);
-        if (text) useReactionStore.getState().show(text);
+        if (!isKnownReaction(msg.key)) return; // malformed/hostile peer — nothing to show
+        const text = reactionText(msg.key)!; // isKnownReaction just confirmed this can't be null
+        useReactionStore.getState().show(text, msg.key);
+        useChatStore.getState().add({ from: 'opponent', at: Date.now(), kind: 'reaction', text, reactionKey: msg.key });
+      } else if (msg.type === 'chat') {
+        const clean = sanitizeChatText(msg.text);
+        if (clean) useChatStore.getState().add({ from: 'opponent', at: Date.now(), kind: 'text', text: clean });
       }
     });
   }, [connection, localColor, isOnline]);

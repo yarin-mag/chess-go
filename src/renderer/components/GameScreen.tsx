@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { phraseFor, reasonFor } from '@/engine/explain';
 import { isOnlineGame, useGameStore } from '@/features/game/gameStore';
+import { useChatStore } from '@/features/online/chatStore';
 import { useOnlineSync } from '@/features/online/useOnlineSync';
 import { useGameEffects } from '@/hooks/useGameEffects';
 import { Board } from './Board';
+import { ChatSheet } from './ChatSheet';
 import { ClockPanel } from './ClockPanel';
 import { ControlBar } from './ControlBar';
 import { GameOverModal } from './GameOverModal';
@@ -32,15 +34,31 @@ export function GameScreen() {
   // doesn't change or vanish out from under the player if a move clears the hint while it's open.
   const [hintReason, setHintReason] = useState<{ title: string; text: string } | null>(null);
 
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatMessageCount = useChatStore((s) => s.messages.length);
+  const lastSeenChatCount = useRef(0);
+  const hasUnreadChat = isOnline && !chatOpen && chatMessageCount > lastSeenChatCount.current;
+  useEffect(() => {
+    if (chatOpen) lastSeenChatCount.current = chatMessageCount;
+  }, [chatOpen, chatMessageCount]);
+
   // The side facing the player sits at the bottom of the board.
   const bottom = flipped ? 'b' : 'w';
   const top = flipped ? 'w' : 'b';
 
   return (
-    <div className={styles.screen} data-moves-collapsed={movesCollapsed}>
+    <div className={`round3 ${styles.screen}`} data-moves-collapsed={movesCollapsed}>
       <Board />
       <aside className={styles.sidebar}>
-        {isOnline && <p className={styles.onlinePill}>{t('online:onlinePill')}</p>}
+        {isOnline && (
+          <div className={styles.topRow}>
+            <p className={styles.onlinePill}>{t('online:onlinePill')}</p>
+            <button className={styles.chatButton} aria-label={t('online:chatTitle')} onClick={() => setChatOpen(true)}>
+              💬
+              {hasUnreadChat && <span className={styles.unreadDot} aria-hidden />}
+            </button>
+          </div>
+        )}
         <ClockPanel color={top} />
         <MoveList collapsed={movesCollapsed} onToggleCollapsed={() => setMovesCollapsed((c) => !c)} />
         {hint && (
@@ -65,6 +83,7 @@ export function GameScreen() {
       <GameOverModal key={gameId} />
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       {isOnline && <ReactionBubble />}
+      {isOnline && <ChatSheet open={chatOpen} onClose={() => setChatOpen(false)} />}
       <ReasonModal
         open={hintReason !== null}
         onClose={() => setHintReason(null)}

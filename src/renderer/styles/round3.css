@@ -1,0 +1,59 @@
+/* "Round 3" design tokens — club-green/cream phone-first shell (Home/Learn/Friends/Shop/Me + the
+   tab bar). Namespaced under .round3 so it coexists with the legacy amber `global.css` tokens still
+   used by screens not yet restyled (Game/Review/Puzzle — see the redesign plan's later phases)
+   instead of overriding :root and silently reskinning those too. */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Heebo:wght@400;500;600;700;800&display=swap');
+
+.round3 {
+  --bg: radial-gradient(120% 60% at 50% 0%, oklch(0.32 0.05 160), oklch(0.25 0.04 160) 60%);
+  --bg-deep: oklch(0.21 0.033 160);
+  --bg-tabbar: oklch(0.22 0.035 160);
+  --tile: oklch(0.27 0.04 160);
+  --plinth: oklch(0.3 0.045 160);
+  --avatar: oklch(0.36 0.05 160);
+  --text: #f3ecdc;
+  --muted: oklch(0.8 0.03 140);
+  --muted-2: oklch(0.7 0.03 150);
+  --cream: #efe6cf;
+  --on-cream: oklch(0.26 0.04 160);
+  --coral: oklch(0.72 0.15 35);
+  --coral-tabbar: oklch(0.74 0.13 40);
+  --surface: rgba(243, 236, 220, 0.06);
+  --surface-ring: rgba(243, 236, 220, 0.1);
+  --line: rgba(243, 236, 220, 0.12);
+  --outline-btn: rgba(243, 236, 220, 0.35);
+  --coin-fill: oklch(0.84 0.14 85);
+  --coin-ring: oklch(0.7 0.14 70);
+  --danger: oklch(0.66 0.21 25);
+
+  /* Rarity — shown as a stroke/underline/small bar only, never a large fill (Phase 3: Shop). */
+  --rarity-common: oklch(0.75 0.02 140);
+  --rarity-uncommon: oklch(0.78 0.14 150);
+  --rarity-rare: oklch(0.72 0.14 245);
+  --rarity-epic: oklch(0.7 0.18 300);
+  --rarity-legendary: oklch(0.84 0.14 85);
+
+  /* Move-quality colors (Phase 2: Review) — keep these keyed to engine/classify.ts's Tier union
+     instead of redefining tiers in CSS; consumers map Tier -> one of these variables. */
+  --tier-brilliant: oklch(0.78 0.1 195);
+  --tier-best: oklch(0.76 0.1 150);
+  --tier-good: rgba(243, 236, 220, 0.55);
+  --tier-inaccuracy: oklch(0.84 0.11 95);
+  --tier-mistake: oklch(0.76 0.12 60);
+  --tier-blunder: oklch(0.68 0.17 28);
+
+  --font-display: 'Space Grotesk', 'Heebo', system-ui, sans-serif;
+
+  /* Token/color/font provider only — deliberately no layout (display/flex-direction/min-height) here,
+     so this class is safe to combine with any element's own layout rules (App's tab shell, GameScreen,
+     …) without the two fighting over `display` depending on CSS injection order. Each caller's own
+     module.css owns its layout; this just makes the Round 3 vars + look available to it. */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+}
+
+.round3 :focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
