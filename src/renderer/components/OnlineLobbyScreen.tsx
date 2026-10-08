@@ -6,7 +6,8 @@ import { Segmented } from './ui/Segmented';
 import styles from './OnlineLobbyScreen.module.css';
 
 interface Props {
-  onExit: () => void;
+  /** Omitted when embedded as a tab (Friends) rather than opened as a standalone overlay. */
+  onExit?: () => void;
 }
 
 type Tab = 'host' | 'join';
@@ -80,15 +81,17 @@ export function OnlineLobbyScreen({ onExit }: Props) {
           </>
         )}
 
-        <button
-          className="btn"
-          onClick={() => {
-            leave();
-            onExit();
-          }}
-        >
-          {t('common:menu')}
-        </button>
+        {onExit && (
+          <button
+            className="btn"
+            onClick={() => {
+              leave();
+              onExit();
+            }}
+          >
+            {t('common:menu')}
+          </button>
+        )}
       </div>
     </div>
   );

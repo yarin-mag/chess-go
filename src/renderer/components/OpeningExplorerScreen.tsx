@@ -15,7 +15,8 @@ import styles from './OpeningExplorerScreen.module.css';
 const HUMAN: PlayerKind = { type: 'human' };
 
 interface Props {
-  onExit: () => void;
+  /** Omitted when embedded as a tab (Learn) rather than opened as a standalone overlay. */
+  onExit?: () => void;
 }
 
 export function OpeningExplorerScreen({ onExit }: Props) {
@@ -106,9 +107,11 @@ export function OpeningExplorerScreen({ onExit }: Props) {
           ))}
         </ol>
 
-        <button className="btn" onClick={onExit}>
-          {t('common:menu')}
-        </button>
+        {onExit && (
+          <button className="btn" onClick={onExit}>
+            {t('common:menu')}
+          </button>
+        )}
       </div>
     </div>
   );

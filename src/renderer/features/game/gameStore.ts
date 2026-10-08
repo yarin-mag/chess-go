@@ -79,6 +79,9 @@ export interface GameState {
   setFlipped(flipped: boolean): void;
   requestHint(): Promise<void>;
   backToMenu(): void;
+  /** Counterpart to `backToMenu`: re-enters a game `backToMenu` paused (history/fen/players are left
+   *  untouched by it, so there's nothing to reconstruct) — a no-op if there's no such game. */
+  resumeGame(): void;
 }
 
 const HUMAN: PlayerKind = { type: 'human' };
@@ -352,6 +355,14 @@ export const useGameStore = create<GameState>((set, get) => {
     backToMenu() {
       abortEngine();
       set({ status: 'menu', engineThinking: false, ...noSelection });
+    },
+
+    resumeGame() {
+      const { status, history, result } = get();
+      if (status === 'menu' && history.length > 0 && result === null) {
+        set({ status: 'playing' });
+        requestNextMove();
+      }
     },
   };
 });

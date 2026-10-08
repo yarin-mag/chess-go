@@ -4,16 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Color, Level, PlayerKind } from '@/core/types';
 import { TIME_PRESETS, customTimeControl } from '@/features/clock/presets';
 import { useGameStore } from '@/features/game/gameStore';
-import { usePuzzleProgressStore } from '@/features/puzzle/puzzleProgressStore';
-import { usePuzzleStore } from '@/features/puzzle/puzzleStore';
-import { overallProgress } from '@/features/puzzle/puzzles';
-import { useOpeningExplorerStore } from '@/features/openings/openingExplorerStore';
-import { useWeaknessDashboardStore } from '@/features/history/weaknessDashboardStore';
-import { useSavedGamesVisibilityStore } from '@/features/history/savedGamesVisibilityStore';
-import { useOnlineLobbyStore } from '@/features/online/onlineLobbyVisibilityStore';
-import { useGlossaryVisibilityStore } from '@/features/glossary/glossaryVisibilityStore';
 import { Segmented } from './ui/Segmented';
-import { SettingsPanel } from './SettingsPanel';
 import styles from './NewGameMenu.module.css';
 
 type Mode = 'local' | 'computer';
@@ -33,18 +24,18 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function NewGameMenu() {
+interface Props {
+  /** Called right after a game is started (e.g. to close the sheet this form was opened in). */
+  onStarted?: () => void;
+}
+
+/** Just the "set up a game" form (mode, difficulty, side, time control, Start) — the other entry
+ *  points this screen used to also hold (puzzles, openings, stats, saved games, online, glossary,
+ *  settings) now live on their own Home/Learn/Friends/Me tabs; this is reused as the "Something
+ *  else…" sheet opened from Home. */
+export function NewGameMenu({ onStarted }: Props) {
   const { t } = useTranslation();
   const startGame = useGameStore((s) => s.startGame);
-  const showPuzzleMap = usePuzzleStore((s) => s.showMap);
-  const { furthestStage, furthestPuzzleIndex } = usePuzzleProgressStore();
-  const puzzleProgress = overallProgress(furthestStage, furthestPuzzleIndex);
-  const showOpeningExplorer = useOpeningExplorerStore((s) => s.show);
-  const showWeaknessDashboard = useWeaknessDashboardStore((s) => s.show);
-  const showSavedGames = useSavedGamesVisibilityStore((s) => s.show);
-  const showOnlineLobby = useOnlineLobbyStore((s) => s.show);
-  const showGlossary = useGlossaryVisibilityStore((s) => s.show);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState<Mode>('computer');
   const [level, setLevel] = useState<Level>('medium');
   const [side, setSide] = useState<Side>('w');
@@ -62,6 +53,7 @@ export function NewGameMenu() {
 
     if (mode === 'local') {
       startGame({ white: HUMAN, black: HUMAN, timeControl });
+      onStarted?.();
       return;
     }
     const humanColor: Color = side === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : side;
@@ -71,6 +63,7 @@ export function NewGameMenu() {
       black: humanColor === 'w' ? engine : HUMAN,
       timeControl,
     });
+    onStarted?.();
   };
 
   return (
@@ -156,36 +149,7 @@ export function NewGameMenu() {
         <button className={`btn btn-primary ${styles.start}`} onClick={start} autoFocus>
           {t('common:startGame')}
         </button>
-
-        <button className="btn" onClick={showPuzzleMap}>
-          {t('common:puzzles')} {puzzleProgress > 0 && `· ${puzzleProgress}%`}
-        </button>
-
-        <button className="btn" onClick={showOpeningExplorer}>
-          {t('common:openings')}
-        </button>
-
-        <button className="btn" onClick={showWeaknessDashboard}>
-          {t('common:myStats')}
-        </button>
-
-        <button className="btn" onClick={showSavedGames}>
-          {t('common:savedGames')}
-        </button>
-
-        <button className="btn" onClick={showOnlineLobby}>
-          {t('common:playOnline')}
-        </button>
-
-        <button className="btn" onClick={showGlossary}>
-          {t('common:glossary')}
-        </button>
-
-        <button className="btn" onClick={() => setSettingsOpen(true)}>
-          {t('common:settingsTitle')}
-        </button>
       </motion.div>
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

@@ -1,0 +1,425 @@
+.frame {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+
+.scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100px;
+  height: 100px;
+  transform-origin: 0 0;
+}
+
+.under {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.actor {
+  position: absolute;
+}
+
+.actorImg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.face {
+  position: absolute;
+}
+
+.blush {
+  position: absolute;
+  top: 46%;
+  width: 24%;
+  height: 16%;
+  border-radius: 50%;
+  background: oklch(0.7 0.17 10);
+  opacity: 0.6;
+}
+
+.eyeSlot {
+  position: absolute;
+  top: 4%;
+  width: 30%;
+  height: 42%;
+}
+
+.eyeDot {
+  position: absolute;
+  left: 20%;
+  top: 8%;
+  width: 60%;
+  height: 84%;
+  border-radius: 50%;
+  background: #1a1220;
+  box-shadow: inset 1.5px 1.5px 0 -0.3px rgba(255, 255, 255, 0.75);
+}
+
+.eyeBig {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #1a1220;
+  box-sizing: border-box;
+}
+
+.eyeBigPupil {
+  position: absolute;
+  left: 30%;
+  top: 32%;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background: #1a1220;
+}
+
+.eyeHappy {
+  position: absolute;
+  left: 0;
+  top: 28%;
+  width: 100%;
+  height: 50%;
+  border: 3px solid #1a1220;
+  border-bottom: none;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  box-sizing: border-box;
+}
+
+.eyeSleepy {
+  position: absolute;
+  left: 0;
+  top: 30%;
+  width: 100%;
+  height: 50%;
+  border: 3px solid #1a1220;
+  border-top: none;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  box-sizing: border-box;
+}
+
+.eyeGlyph {
+  position: absolute;
+  inset: -30% -20%;
+  display: grid;
+  place-items: center;
+  font-family: system-ui;
+  font-weight: 900;
+  line-height: 1;
+  color: #1a1220;
+}
+
+.shades {
+  position: absolute;
+  left: -4%;
+  top: 2%;
+  width: 108%;
+  height: 42%;
+  display: flex;
+  gap: 8%;
+}
+
+.shadesLens {
+  flex: 1;
+  background: linear-gradient(160deg, #3a3550, #0e0c14 60%);
+  border-radius: 2px 2px 50% 50%;
+  border: 1.5px solid #0e0c14;
+}
+
+.shadesBridge {
+  position: absolute;
+  left: -4%;
+  top: 6%;
+  width: 108%;
+  height: 2.5px;
+  background: #0e0c14;
+}
+
+.browAngryLeft,
+.browAngryRight,
+.browWorriedLeft,
+.browWorriedRight {
+  position: absolute;
+  width: 36%;
+  height: 3px;
+  border-radius: 2px;
+  background: #1a1220;
+}
+
+.browAngryLeft {
+  left: 6%;
+  top: -12%;
+  transform: rotate(22deg);
+}
+
+.browAngryRight {
+  left: 58%;
+  top: -12%;
+  transform: rotate(-22deg);
+}
+
+.browWorriedLeft {
+  left: 6%;
+  top: -14%;
+  width: 34%;
+  transform: rotate(-20deg);
+}
+
+.browWorriedRight {
+  left: 60%;
+  top: -14%;
+  width: 34%;
+  transform: rotate(20deg);
+}
+
+.mouthSlot {
+  position: absolute;
+  left: 28%;
+  top: 56%;
+  width: 44%;
+  height: 36%;
+}
+
+.mouthSmile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 80%;
+  border-bottom: 3px solid #1a1220;
+  border-radius: 0 0 50% 50%;
+  box-sizing: border-box;
+}
+
+.mouthGrin {
+  position: absolute;
+  left: -8%;
+  top: 0;
+  width: 116%;
+  height: 100%;
+  background: #1a1220;
+  border-radius: 2px 2px 50% 50%;
+  overflow: hidden;
+}
+
+.mouthGrinTeeth {
+  height: 32%;
+  background: #fff;
+}
+
+.mouthLaugh {
+  position: absolute;
+  left: -16%;
+  top: -10%;
+  width: 132%;
+  height: 140%;
+  background: #1a1220;
+  border-radius: 3px 3px 50% 50%;
+  overflow: hidden;
+}
+
+.mouthLaughTeeth {
+  height: 24%;
+  background: #fff;
+}
+
+.mouthLaughTongue {
+  position: absolute;
+  left: 25%;
+  bottom: -8%;
+  width: 50%;
+  height: 40%;
+  border-radius: 50% 50% 0 0;
+  background: oklch(0.68 0.17 15);
+}
+
+.mouthFrown {
+  position: absolute;
+  left: 5%;
+  top: 30%;
+  width: 90%;
+  height: 70%;
+  border-top: 3px solid #1a1220;
+  border-radius: 50% 50% 0 0;
+  box-sizing: border-box;
+}
+
+.mouthO {
+  position: absolute;
+  left: 28%;
+  top: 0;
+  width: 44%;
+  height: 110%;
+  border-radius: 50%;
+  background: #1a1220;
+}
+
+.mouthTongue {
+  position: absolute;
+  left: 46%;
+  top: 56%;
+  width: 36%;
+  height: 70%;
+  border-radius: 0 0 50% 50%;
+  background: oklch(0.68 0.17 15);
+  border: 2px solid #1a1220;
+  border-top: none;
+  box-sizing: border-box;
+}
+
+.mouthTeeth {
+  position: absolute;
+  left: -10%;
+  top: 0;
+  width: 120%;
+  height: 90%;
+  border: 2px solid #1a1220;
+  border-radius: 3px;
+  box-sizing: border-box;
+  background: repeating-linear-gradient(90deg, #fff 0 5px, #1a1220 5px 6.5px);
+}
+
+.tear {
+  position: absolute;
+  top: 40%;
+  width: 11%;
+  height: 95%;
+  border-radius: 4px;
+  background: linear-gradient(oklch(0.88 0.08 230), oklch(0.74 0.13 235));
+}
+
+/* — fx marks — */
+.fx {
+  position: absolute;
+}
+
+.fxText {
+  display: block;
+  font-family: system-ui, sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-shadow:
+    0 0 0 #120e16,
+    1.5px 1.5px 0 #120e16,
+    -1px -1px 0 #120e16,
+    1.5px -1px 0 #120e16,
+    -1px 1.5px 0 #120e16;
+}
+
+.fxDrop {
+  border-radius: 0 50% 50% 50%;
+  transform: rotate(45deg);
+  background: oklch(0.84 0.1 230);
+  border: 1.5px solid #1a1220;
+  box-sizing: border-box;
+}
+
+.fxPuff {
+  border-radius: 50%;
+  background: rgba(240, 240, 244, 0.92);
+  box-shadow: 0 0 0 1.5px rgba(26, 18, 32, 0.5);
+}
+
+.fxFlag {
+  position: relative;
+  width: 40px;
+  height: 66px;
+}
+
+.fxFlagPole {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 66px;
+  border-radius: 2px;
+  background: #6b4f33;
+  border: 1px solid #1a1220;
+}
+
+.fxFlagCloth {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 32px;
+  height: 22px;
+  background: #fbfaf7;
+  border: 2px solid #1a1220;
+  border-radius: 0 6px 6px 0;
+  box-sizing: border-box;
+  transform: skewY(6deg);
+}
+
+.fxClock {
+  position: relative;
+  border-radius: 50%;
+  background: #fbfaf7;
+  border: 3px solid;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 1.5px #1a1220;
+}
+
+.fxClockMinute {
+  position: absolute;
+  left: calc(50% - 1.5px);
+  top: 16%;
+  width: 3px;
+  height: 36%;
+  background: #1a1220;
+  border-radius: 2px;
+}
+
+.fxClockHour {
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 1.5px);
+  width: 28%;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.fxConfetti {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.fxConfettiPiece {
+  position: absolute;
+  width: 6px;
+  height: 10px;
+}
+
+.fxArrow {
+  position: relative;
+  height: 12px;
+}
+
+.fxArrowShaft {
+  position: absolute;
+  left: 0;
+  right: 10px;
+  top: 4px;
+  height: 5px;
+  border-radius: 2px;
+}
+
+.fxArrowHead {
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  width: 0;
+  height: 0;
+  border-left: 14px solid;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}

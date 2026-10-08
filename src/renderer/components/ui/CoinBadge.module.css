@@ -1,0 +1,14 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.coin {
+  flex: none;
+  border-radius: 50%;
+  background: var(--coin-fill, oklch(0.84 0.14 85));
+}

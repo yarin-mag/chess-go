@@ -1,0 +1,140 @@
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px 0;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.note {
+  margin: 40px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* — Crates — */
+.cratesBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.crateTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.crateSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.previewRow {
+  display: flex;
+  gap: 8px;
+}
+
+.previewSwatch {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  flex: none;
+}
+
+.oddsLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+}
+
+.oddsItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oddsDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.oddsPercent {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.revealLine {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* — Boards — */
+.boardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.boardTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-display);
+  cursor: pointer;
+}
+
+.boardTile:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.boardTileEquipped {
+  box-shadow: inset 0 0 0 1.5px var(--cream);
+}
+
+.boardPreview {
+  width: 100%;
+  height: 56px;
+  border-radius: 8px;
+}
+
+.boardName {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.boardState {
+  font-size: 11px;
+  color: var(--muted);
+}

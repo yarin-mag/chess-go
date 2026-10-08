@@ -5,6 +5,7 @@ import { ClerkProvider } from '@clerk/react';
 import { App } from './App';
 import { backfillVaultIfEmpty } from './features/vault/backfillVault';
 import './styles/global.css';
+import './styles/round3.css';
 
 backfillVaultIfEmpty();
 

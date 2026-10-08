@@ -1,0 +1,12 @@
+.shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}

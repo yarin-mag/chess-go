@@ -1,0 +1,20 @@
+.bubble {
+  max-width: 290px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--surface-ring);
+  border-radius: 18px 18px 18px 6px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+[dir='rtl'] .bubble {
+  border-radius: 18px 18px 6px 18px;
+}
+
+.padded {
+  padding: 12px 14px;
+}
+
+.bubble strong {
+  font-weight: 700;
+}

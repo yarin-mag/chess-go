@@ -2,7 +2,14 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { enqueueOfflineResult } from '@/features/sync/offlineQueueStore';
 import { useAuthStore } from '@/features/auth/authStore';
+import { useWalletStore } from '@/features/shop/walletStore';
 import { nextStreak, todayString } from './streak';
+
+/** Coin rewards (Round 3 handoff's "earn events" table) — kept local to this store since every one of
+ *  them is a genuine ladder/daily-puzzle event this store already uniquely owns the detection for. */
+const COINS_PER_PUZZLE = 10;
+const COINS_PER_DAILY = 25;
+const COINS_PER_STAGE = 100;
 
 export type RushDuration = '3' | '5';
 
@@ -61,7 +68,12 @@ export const usePuzzleProgressStore = create<PuzzleProgressState>()(
             furthestPuzzleIndex: further ? nextPuzzleIndex : furthestPuzzleIndex,
           });
           // Only a genuine advance is a real milestone — replaying an earlier puzzle (further === false)
-          // isn't progress worth syncing, same spirit as gameStore.finish()'s offline-sync wiring.
+          // isn't progress worth syncing or paying out, same spirit as gameStore.finish()'s offline-sync
+          // wiring. Reaching a new stage (not just a new puzzle within the current one) pays the bigger
+          // stage bonus on top of, not instead of, the per-puzzle one.
+          if (further) {
+            useWalletStore.getState().earn(nextStage > furthestStage ? COINS_PER_PUZZLE + COINS_PER_STAGE : COINS_PER_PUZZLE);
+          }
           if (further && useAuthStore.getState().status === 'signedIn') {
             void enqueueOfflineResult({ kind: 'milestone', transcript: { stage: nextStage, puzzleIndex: nextPuzzleIndex } });
           }
@@ -69,6 +81,7 @@ export const usePuzzleProgressStore = create<PuzzleProgressState>()(
 
         recordDailySolve() {
           bumpStreak();
+          useWalletStore.getState().earn(COINS_PER_DAILY);
         },
 
         recordRushScore(duration, score) {
