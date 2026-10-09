@@ -127,6 +127,8 @@
   width: 100%;
   height: 56px;
   border-radius: 8px;
+  border-bottom: 4px solid transparent;
+  box-sizing: border-box;
 }
 
 .boardName {
@@ -137,4 +139,71 @@
 .boardState {
   font-size: 11px;
   color: var(--muted);
+}
+
+/* — Boards: desktop featured spotlight (3z) — */
+.boardsLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.boardsGridCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.featured {
+  display: none;
+}
+
+.featuredPreview {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+.featuredFooter {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.featuredInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.featuredName {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.featuredMeta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (min-width: 821px) {
+  .boardsLayout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    align-items: start;
+    gap: 28px;
+  }
+
+  .featured {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .boardGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }

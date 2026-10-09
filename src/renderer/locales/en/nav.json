@@ -28,6 +28,9 @@
   "meOpponentLocal": "Local game",
   "meLoadout": "Loadout",
   "meLoadoutBoard": "Board",
+  "meWeakSpots": "Weak spots",
+  "meSeeAll": "See all",
+  "practiseBlunders": "Practise my blunders · {{count}} puzzles",
 
   "friendsPlaceholder": "Friends is a work in progress — for now, play someone directly with a room code.",
 
@@ -38,6 +41,9 @@
   "shopCrateTitle": "Opening Crate",
   "shopCrateSubtitle": "One random board skin · no duplicates while any are left to find",
   "shopOpenFor": "Open for",
+  "shopFeatured": "Featured",
+  "shopFeaturedSubtitle": "Board",
+  "shopBuy": "Buy",
   "shopYouGot": "You got: {{name}}!",
   "shopEquipped": "Equipped",
   "shopOwned": "Owned",

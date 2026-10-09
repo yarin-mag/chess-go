@@ -10,3 +10,13 @@
   flex-direction: column;
   min-height: 0;
 }
+
+@media (min-width: 821px) {
+  .shell {
+    flex-direction: row;
+  }
+
+  .tabContent {
+    min-width: 0;
+  }
+}

@@ -28,6 +28,9 @@
   "meOpponentLocal": "משחק מקומי",
   "meLoadout": "ציוד",
   "meLoadoutBoard": "לוח",
+  "meWeakSpots": "נקודות חולשה",
+  "meSeeAll": "הצג הכל",
+  "practiseBlunders": "תרגל את הטעויות שלי · {{count}} חידות",
 
   "friendsPlaceholder": "חברים עדיין בבנייה — בינתיים, שחק עם מישהו ישירות באמצעות קוד חדר.",
 
@@ -38,6 +41,9 @@
   "shopCrateTitle": "תיבת פתיחה",
   "shopCrateSubtitle": "עיצוב לוח אקראי אחד · ללא כפילויות כל עוד יש מה לגלות",
   "shopOpenFor": "פתח תמורת",
+  "shopFeatured": "מומלץ",
+  "shopFeaturedSubtitle": "לוח",
+  "shopBuy": "קנה",
   "shopYouGot": "קיבלת: {{name}}!",
   "shopEquipped": "מצויד",
   "shopOwned": "ברשותך",

@@ -15,6 +15,7 @@
   "reactBtn": "😊 Reaccionar",
   "drawDeclined": "Tablas rechazadas",
   "chatTitle": "Chat",
+  "movesTab": "Jugadas",
   "chatClose": "Cerrar chat",
   "chatPlaceholder": "Mensaje…",
   "chatSend": "Enviar",
@@ -43,8 +44,13 @@
   "savedGamesEmpty": "Termina una partida y aparecerá aquí, lista para abrir y recorrer de nuevo cuando quieras.",
   "savedGamesCount_one": "{{count}} partida guardada en este dispositivo",
   "savedGamesCount_other": "{{count}} partidas guardadas en este dispositivo",
+  "savedGamesSubtitle": "{{count}} partidas · más recientes primero",
+  "savedGamesFilterAll": "Todas",
+  "savedGamesFilterWins": "Victorias",
+  "savedGamesFilterLosses": "Derrotas",
+  "savedGamesFilterDraws": "Tablas",
   "localTwoPlayers": "Local · 2 jugadores",
-  "savedGameRow": "{{result}} · {{opponent}} · {{moves}} movimientos",
+  "savedGameMeta": "{{moves}} movimientos",
   "clearAll": "Borrar todo",
   "deleteSavedGame": "Eliminar partida guardada"
 }

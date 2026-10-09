@@ -15,6 +15,7 @@
   "reactBtn": "😊 הגב",
   "drawDeclined": "הצעת התיקו נדחתה",
   "chatTitle": "צ'אט",
+  "movesTab": "מהלכים",
   "chatClose": "סגור צ'אט",
   "chatPlaceholder": "הודעה…",
   "chatSend": "שלח",
@@ -44,8 +45,13 @@
   "savedGamesCount_one": "משחק אחד שמור במכשיר זה",
   "savedGamesCount_two": "שני משחקים שמורים במכשיר זה",
   "savedGamesCount_other": "{{count}} משחקים שמורים במכשיר זה",
+  "savedGamesSubtitle": "{{count}} משחקים · החדשים ביותר קודם",
+  "savedGamesFilterAll": "הכל",
+  "savedGamesFilterWins": "ניצחונות",
+  "savedGamesFilterLosses": "הפסדים",
+  "savedGamesFilterDraws": "תיקו",
   "localTwoPlayers": "מקומי · שני שחקנים",
-  "savedGameRow": "{{result}} · {{opponent}} · {{moves}} מהלכים",
+  "savedGameMeta": "{{moves}} מהלכים",
   "clearAll": "נקה הכל",
   "deleteSavedGame": "מחק משחק שמור"
 }

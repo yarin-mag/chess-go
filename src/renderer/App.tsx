@@ -14,6 +14,7 @@ import { PuzzleMapScreen } from './components/PuzzleMapScreen';
 import { PuzzleScreen } from './components/PuzzleScreen';
 import { ReviewScreen } from './components/ReviewScreen';
 import { SavedGamesScreen } from './components/SavedGamesScreen';
+import { SettingsPanel } from './components/SettingsPanel';
 import { ShopScreen } from './components/ShopScreen';
 import { TabBar } from './components/TabBar';
 import { WeaknessDashboardScreen } from './components/WeaknessDashboardScreen';
@@ -30,6 +31,7 @@ import { useSavedGamesVisibilityStore } from './features/history/savedGamesVisib
 import { useWeaknessDashboardStore } from './features/history/weaknessDashboardStore';
 import { usePuzzleStore } from './features/puzzle/puzzleStore';
 import { useReviewStore } from './features/review/reviewStore';
+import { useSettingsPanelStore } from './features/settings/settingsPanelStore';
 import styles from './App.module.css';
 
 /** Dev-only escape hatch: skip Clerk entirely and act as a fixed fake test account. `import.meta.env.DEV`
@@ -130,6 +132,8 @@ export function App() {
   const hideGlossary = useGlossaryVisibilityStore((s) => s.hide);
   const hideOnlineLobby = useOnlineLobbyStore((s) => s.hide);
   const tab = useNavStore((s) => s.tab);
+  const settingsOpen = useSettingsPanelStore((s) => s.visible);
+  const hideSettings = useSettingsPanelStore((s) => s.hide);
 
   const gate = decideGate({ hasEverAuthenticated, status, isOnline });
   if (gate === 'checking') return null;
@@ -139,30 +143,42 @@ export function App() {
   // offlineFallback is exactly today's app, by construction (no account, no coins UI to show yet
   // regardless, since sub-project 2 hasn't shipped any).
 
-  if (reviewing) return <ReviewScreen />;
-  if (puzzleStatus === 'map') return <PuzzleMapScreen onExit={exitPuzzle} />;
-  if (puzzleStatus !== 'idle') return <PuzzleScreen onExit={exitPuzzle} />;
-  if (exploringOpenings) return <OpeningExplorerScreen onExit={hideOpeningExplorer} />;
-  if (viewingStats) return <WeaknessDashboardScreen onExit={hideWeaknessDashboard} />;
-  if (viewingSavedGames) return <SavedGamesScreen onExit={hideSavedGames} />;
-  if (viewingGlossary) return <GlossaryScreen onExit={hideGlossary} />;
-  if (showingOnlineLobby) return <OnlineLobbyScreen onExit={hideOnlineLobby} />;
-  // A game that's actually in progress (or just ended) still owns the whole screen — the tab bar only
-  // ever applies once the player is back at the top level (gameStore.backToMenu, called from
-  // ControlBar's "Menu" button, is a pause: fen/history survive, so HomeScreen's "Resume my game" can
-  // bring it back via resumeGame()).
-  if (!inMenu) return <GameScreen />;
+  // Settings can be opened from several of the screens below (Me's gear icon, GameScreen's control bar,
+  // the desktop nav rail's gear icon) — one shared overlay mount here instead of each screen owning its
+  // own `<SettingsPanel>` instance and local open/close state.
+  let screen;
+  if (reviewing) screen = <ReviewScreen />;
+  else if (puzzleStatus === 'map') screen = <PuzzleMapScreen onExit={exitPuzzle} />;
+  else if (puzzleStatus !== 'idle') screen = <PuzzleScreen onExit={exitPuzzle} />;
+  else if (exploringOpenings) screen = <OpeningExplorerScreen onExit={hideOpeningExplorer} />;
+  else if (viewingStats) screen = <WeaknessDashboardScreen onExit={hideWeaknessDashboard} />;
+  else if (viewingSavedGames) screen = <SavedGamesScreen onExit={hideSavedGames} />;
+  else if (viewingGlossary) screen = <GlossaryScreen onExit={hideGlossary} />;
+  else if (showingOnlineLobby) screen = <OnlineLobbyScreen onExit={hideOnlineLobby} />;
+  else if (!inMenu)
+    // A game that's actually in progress (or just ended) still owns the whole screen — the tab bar only
+    // ever applies once the player is back at the top level (gameStore.backToMenu, called from
+    // ControlBar's "Menu" button, is a pause: fen/history survive, so HomeScreen's "Resume my game" can
+    // bring it back via resumeGame()).
+    screen = <GameScreen />;
+  else
+    screen = (
+      <div className={`round3 ${styles.shell}`}>
+        <div className={styles.tabContent}>
+          {tab === 'home' && <HomeScreen />}
+          {tab === 'learn' && <LearnScreen />}
+          {tab === 'friends' && <FriendsScreen />}
+          {tab === 'shop' && <ShopScreen />}
+          {tab === 'me' && <MeScreen />}
+        </div>
+        <TabBar />
+      </div>
+    );
 
   return (
-    <div className={`round3 ${styles.shell}`}>
-      <div className={styles.tabContent}>
-        {tab === 'home' && <HomeScreen />}
-        {tab === 'learn' && <LearnScreen />}
-        {tab === 'friends' && <FriendsScreen />}
-        {tab === 'shop' && <ShopScreen />}
-        {tab === 'me' && <MeScreen />}
-      </div>
-      <TabBar />
-    </div>
+    <>
+      {screen}
+      <SettingsPanel open={settingsOpen} onClose={hideSettings} />
+    </>
   );
 }

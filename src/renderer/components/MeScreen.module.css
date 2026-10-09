@@ -93,6 +93,39 @@
   gap: 2px;
 }
 
+.recentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.seeAll {
+  background: none;
+  border: none;
+  color: var(--coral, oklch(0.72 0.15 35));
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 16px;
+  font-family: var(--font-display);
+  cursor: pointer;
+}
+
 .empty {
   font-size: 14px;
   color: var(--muted);

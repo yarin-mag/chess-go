@@ -15,6 +15,7 @@
   "reactBtn": "😊 React",
   "drawDeclined": "Draw declined",
   "chatTitle": "Chat",
+  "movesTab": "Moves",
   "chatClose": "Close chat",
   "chatPlaceholder": "Message…",
   "chatSend": "Send",
@@ -43,8 +44,13 @@
   "savedGamesEmpty": "Finish a game and it will show up here, ready to open and step through again any time.",
   "savedGamesCount_one": "{{count}} game saved on this device",
   "savedGamesCount_other": "{{count}} games saved on this device",
+  "savedGamesSubtitle": "{{count}} games · newest first",
+  "savedGamesFilterAll": "All",
+  "savedGamesFilterWins": "Wins",
+  "savedGamesFilterLosses": "Losses",
+  "savedGamesFilterDraws": "Draws",
   "localTwoPlayers": "Local · 2 players",
-  "savedGameRow": "{{result}} · {{opponent}} · {{moves}} moves",
+  "savedGameMeta": "{{moves}} moves",
   "clearAll": "Clear all",
   "deleteSavedGame": "Delete saved game"
 }

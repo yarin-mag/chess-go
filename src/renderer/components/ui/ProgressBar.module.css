@@ -1,0 +1,23 @@
+.bar {
+  display: flex;
+  gap: 3px;
+  height: 4px;
+}
+
+.seg {
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(243, 236, 220, 0.12);
+}
+
+.done {
+  background: var(--cream, #efe6cf);
+}
+
+.current {
+  background: var(--coral, oklch(0.72 0.15 35));
+}
+
+.currentWrong {
+  background: var(--tier-blunder, oklch(0.68 0.17 28));
+}

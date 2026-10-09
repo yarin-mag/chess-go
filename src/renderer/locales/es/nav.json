@@ -28,6 +28,9 @@
   "meOpponentLocal": "Partida local",
   "meLoadout": "Equipo",
   "meLoadoutBoard": "Tablero",
+  "meWeakSpots": "Puntos débiles",
+  "meSeeAll": "Ver todas",
+  "practiseBlunders": "Practicar mis errores · {{count}} puzzles",
 
   "friendsPlaceholder": "Amigos todavía está en construcción — por ahora, juega directamente con un código de sala.",
 
@@ -38,6 +41,9 @@
   "shopCrateTitle": "Caja inicial",
   "shopCrateSubtitle": "Un diseño de tablero al azar · sin duplicados mientras queden por descubrir",
   "shopOpenFor": "Abrir por",
+  "shopFeatured": "Destacado",
+  "shopFeaturedSubtitle": "Tablero",
+  "shopBuy": "Comprar",
   "shopYouGot": "¡Obtuviste: {{name}}!",
   "shopEquipped": "Equipado",
   "shopOwned": "Adquirido",

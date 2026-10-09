@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { ChessGame } from '@/core/chessGame';
 import type { Color, MoveInput } from '@/core/types';
+import { useWalletStore } from '@/features/shop/walletStore';
 import type { CuratedOpening } from './curatedOpenings';
+
+/** Flat reward for finishing a quiz run, win or not — unlike puzzles/games, completion itself is the
+ *  goal here, so the coins aren't gated on a perfect score. */
+export const QUIZ_REWARD = 30;
 
 const uciToMove = (uci: string): MoveInput => ({
   from: uci.slice(0, 2),
@@ -31,6 +36,12 @@ interface OpeningQuizState {
   wrongSteps: Set<number>;
   start(opening: CuratedOpening, side: Color): void;
   submitMove(move: MoveInput): void;
+  /** Dismisses the current wrong-move feedback without changing the position — lets the player retry
+   *  the same step from a clean prompt. */
+  clearWrong(): void;
+  /** SAN of the book move for the current step, without playing it — backs the "Show the book move"
+   *  reveal. Null once the quiz is done or it isn't the player's turn to answer. */
+  bookMoveSan(): string | null;
   exit(): void;
 }
 
@@ -48,6 +59,7 @@ export const useOpeningQuizStore = create<OpeningQuizState>((set, get) => {
     const { opening, step } = get();
     if (!opening) return;
     if (step >= opening.sequence.length) {
+      useWalletStore.getState().earn(QUIZ_REWARD);
       set({ status: 'done' });
       return;
     }
@@ -95,6 +107,18 @@ export const useOpeningQuizStore = create<OpeningQuizState>((set, get) => {
       playStep(step);
       if (!wasWrongBefore) set({ correctCount: get().correctCount + 1 });
       advanceOpponentIfNeeded();
+    },
+
+    clearWrong() {
+      set({ lastWrong: null });
+    },
+
+    bookMoveSan() {
+      const { status, opening, step, side, game } = get();
+      if (status !== 'playing' || !opening || step >= opening.sequence.length) return null;
+      const isPlayerTurn = step % 2 === (side === 'w' ? 0 : 1);
+      if (!isPlayerTurn) return null;
+      return new ChessGame(game.fen()).move(uciToMove(opening.sequence[step]))?.san ?? null;
     },
 
     exit() {

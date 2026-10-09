@@ -60,3 +60,78 @@
   font-weight: 700;
   color: var(--text);
 }
+
+.settingsItem {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-2);
+  font: inherit;
+  font-family: var(--font-display);
+}
+
+.railOnly {
+  display: none;
+}
+
+@media (min-width: 821px) {
+  .bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 96px;
+    height: 100%;
+    flex: none;
+    /* Visually first (left in LTR, right in RTL) in the tab shell's row layout, even though it stays
+       last in the DOM — DOM order keeps it last so the mobile column layout still renders it at the
+       bottom, below `.tabContent`, without needing a second copy of this component. */
+    order: -1;
+    padding: 22px 0;
+    border-top: none;
+    border-inline-end: 1px solid var(--line);
+  }
+
+  .railOnly {
+    display: flex;
+  }
+
+  .item {
+    width: 96px;
+    padding-top: 0;
+  }
+
+  .topBar {
+    inset-inline-start: 0;
+    top: 10px;
+    left: auto;
+    right: auto;
+    width: 3px;
+    height: 28px;
+    border-radius: 0;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+  }
+
+  .settingsItem {
+    display: flex;
+    margin-top: auto;
+  }
+
+  /* `railOnly` (GameScreen) isn't a flex sibling of the content it sits next to the way the tab shell's
+     rail is (App.module.css lays that one out as a normal flex-row child) — GameScreen's own layout
+     already centers its board+sidebar independently, so the rail is pinned to the real viewport edge
+     instead; GameScreen.module.css reserves the matching space so the centered content never slides
+     under it. */
+  .railOnly {
+    position: fixed;
+    inset-inline-start: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 5;
+  }
+}

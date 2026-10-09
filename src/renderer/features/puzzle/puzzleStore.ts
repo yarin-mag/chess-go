@@ -5,6 +5,7 @@ import { describePotentialMove } from '@/core/describeMove';
 import { requestMoveGrade } from '@/engine/engineClient';
 import { classify, type Tier } from '@/engine/classify';
 import { explainTags, type ExplanationTag } from '@/engine/explain';
+import { useWalletStore } from '@/features/shop/walletStore';
 import { usePuzzleProgressStore, type RushDuration } from './puzzleProgressStore';
 import { allPuzzles, dailyPuzzle, puzzlesForStage, shuffled, totalStagePuzzleCount, type PuzzleData } from './puzzles';
 import { abortBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
@@ -46,6 +47,11 @@ interface PuzzleState {
   flipped: boolean;
   feedback: WrongMoveFeedback | null;
   hint: PuzzleHint | null;
+  /** Coins this exact solve just earned (null for a vault solve, which pays nothing) — purely a display
+   *  value for the solved-state coach bubble; the real award already happened via puzzleProgressStore/
+   *  blunderVaultStore by the time this is set, derived here from the wallet's own before/after delta so
+   *  it can never drift from whatever those stores actually paid out. */
+  lastReward: number | null;
 
   // Puzzle Rush only.
   rushDuration: RushDuration | null;
@@ -97,6 +103,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
       flipped: game.turn() === 'b',
       feedback: null,
       hint: null,
+      lastReward: null,
       ...noSelection,
     });
   };
@@ -131,6 +138,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
     flipped: false,
     feedback: null,
     hint: null,
+    lastReward: null,
     rushDuration: null,
     rushDeadline: null,
     rushRemainingMs: 0,
@@ -207,6 +215,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
             return;
           }
           set({ status: 'solved' });
+          const coinsBefore = useWalletStore.getState().coins;
           if (mode === 'daily') {
             usePuzzleProgressStore.getState().recordDailySolve();
           } else if (mode === 'vault') {
@@ -217,6 +226,8 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => {
             const [nextStage, nextIndex] = solvedAt + 1 >= size ? [get().stage + 1, 0] : [get().stage, solvedAt + 1];
             usePuzzleProgressStore.getState().markSolved(nextStage, nextIndex);
           }
+          const earned = useWalletStore.getState().coins - coinsBefore;
+          set({ lastReward: earned > 0 ? earned : null });
           return;
         }
 

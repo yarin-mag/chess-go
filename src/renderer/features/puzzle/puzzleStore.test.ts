@@ -4,6 +4,7 @@ import { usePuzzleProgressStore } from './puzzleProgressStore';
 import { puzzlesForStage } from './puzzles';
 import { useBlunderVaultStore } from '@/features/vault/blunderVaultStore';
 import { abortBackgroundAnalysis } from '@/features/vault/backgroundAnalysisQueue';
+import { useWalletStore } from '@/features/shop/walletStore';
 
 vi.mock('@/features/vault/backgroundAnalysisQueue', () => ({ abortBackgroundAnalysis: vi.fn() }));
 
@@ -62,6 +63,27 @@ describe('puzzleStore', () => {
     }
     expect(usePuzzleStore.getState().status).toBe('solved');
     expect(usePuzzleProgressStore.getState().solvedCount).toBeGreaterThan(0);
+    expect(usePuzzleStore.getState().lastReward).toBeGreaterThan(0);
+  });
+
+  it('does not credit a reward for a vault solve (blunder-vault practice pays nothing)', async () => {
+    useWalletStore.setState({ coins: 0 });
+    useBlunderVaultStore.setState({
+      entries: [
+        {
+          id: 'g1-4', sourceGameId: 'g1', ply: 4, fenBefore: first.fen,
+          bestMove: { from: first.solution[0].slice(0, 2), to: first.solution[0].slice(2, 4) },
+          bestSan: 'x', playedSan: 'y', tier: 'blunder', tags: [], capturedAt: new Date().toISOString(),
+        },
+      ],
+      solvedIds: [],
+    });
+    usePuzzleStore.getState().startVault();
+    const m0 = first.solution[0];
+    await play(m0.slice(0, 2), m0.slice(2, 4));
+    expect(usePuzzleStore.getState().status).toBe('solved');
+    expect(usePuzzleStore.getState().lastReward).toBeNull();
+    useBlunderVaultStore.getState().clear();
   });
 
   it('grades a wrong move without corrupting the puzzle position', async () => {

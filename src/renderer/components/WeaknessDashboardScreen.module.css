@@ -1,125 +1,140 @@
 .screen {
-  height: 100%;
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px;
+  flex-direction: column;
+  min-height: 0;
   overflow-y: auto;
 }
 
-.card {
-  width: min(560px, 100%);
+.body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 32px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--panel);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+  gap: 16px;
+  padding: 10px 22px 24px;
 }
 
-.header {
-  text-align: center;
-}
-
-.header h1 {
-  font-size: 28px;
-  font-weight: 800;
-}
-
-.header p {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.insight {
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: rgba(217, 164, 65, 0.12);
-  border: 1px solid rgba(217, 164, 65, 0.4);
-  font-size: 14px;
-}
-
-.sectionTitle {
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.tierBars {
+.back {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tierRow {
-  display: grid;
-  grid-template-columns: 90px 1fr 32px;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
+  gap: 6px;
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0;
 }
 
-.tierName {
+.title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
   color: var(--muted);
 }
 
-.tierCount {
-  text-align: right;
+.practiseButton {
+  align-self: flex-end;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phaseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.phaseCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phaseLabel {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.phasePct {
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
 }
 
-.barTrack {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--panel-raised);
-  border: 1px solid var(--border);
-  overflow: hidden;
+.track {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(243, 236, 220, 0.12);
 }
 
-.barFill {
+.trackFill {
   height: 100%;
-  transition: width 0.3s ease;
+  border-radius: 2px;
+  background: var(--coral, oklch(0.72 0.15 35));
 }
-
-.brilliant { background: #2dd4bf; }
-.best { background: #4ade80; }
-.good { background: #a3e635; }
-.inaccuracy { background: #facc15; }
-.mistake { background: #fb923c; }
-.blunder { background: #f87171; }
 
 .tagList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  border-top: 1px solid var(--line);
 }
 
 .tagRow {
   display: flex;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--panel-raised);
-  font-size: 14px;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tagInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tagName {
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .tagCount {
+  flex: none;
   font-weight: 700;
-  color: var(--muted);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
 }
 
-.actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 22px;
+}
+
+.emptyBody {
+  margin: 0;
+  color: var(--muted);
 }
